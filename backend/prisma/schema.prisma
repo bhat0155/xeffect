@@ -5,10 +5,52 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  googleId String @unique
+  name String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  habit Habit?
+}
+
+model Habit {
+  id String @id @default(uuid())
+  userId String @unique
+  name String
+
+  bestStreak Int @default(0)
+  allDone Boolean @default(false)
+
+  isPublic Boolean @default(false)
+  publicSlug String? @unique
+
+  lastMilestoneReached Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checkins HabitCheckin[]
+}
+
+model HabitCheckin {
+  id String @id @default(uuid())
+  habitId String
+  checkinDate DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, checkinDate])
 }
