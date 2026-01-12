@@ -3,7 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
-import { dot } from "node:test/reporters";
+import { configurePassport } from "./config/passport";
+import passport from "passport";
+import authRoutes from "./routes/auth.routes";
 
 dotenv.config();
 
@@ -18,6 +20,11 @@ app.use(cors({
 }))
 app.use(cookieParser());
 app.use(express.json())
+
+configurePassport();
+app.use(passport.initialize())
+
+app.use("/auth", authRoutes)
 
 // health route
 app.get("/health", (req: Request, res: Response)=>{
