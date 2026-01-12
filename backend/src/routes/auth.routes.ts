@@ -18,7 +18,7 @@ router.get("/google/callback", passport.authenticate("google", {failureRedirect:
     const token = jwt.sign({userId: user.userId}, jwtSecret, {expiresIn: "7d"});
 
     // send the code as cookie
-    res.cookie("X-effect-token", token, {
+    res.cookie("xeffect_token", token, {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",

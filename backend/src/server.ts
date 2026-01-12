@@ -6,6 +6,8 @@ import helmet from "helmet";
 import { configurePassport } from "./config/passport";
 import passport from "passport";
 import authRoutes from "./routes/auth.routes";
+import { requireAuth } from "./middlewares/requireAuth";
+
 
 dotenv.config();
 
@@ -29,6 +31,10 @@ app.use("/auth", authRoutes)
 // health route
 app.get("/health", (req: Request, res: Response)=>{
     res.status(200).json({ok: true, message: "Sab changa si"})
+})
+
+app.get("/me", requireAuth, (req: Request, res: Response)=>{
+    res.status(200).json({ok: true, userId: req.userId})
 })
 
 app.listen(PORT, ()=>{
