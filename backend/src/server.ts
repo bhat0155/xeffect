@@ -33,9 +33,7 @@ app.get("/health", (req: Request, res: Response)=>{
     res.status(200).json({ok: true, message: "Sab changa si"})
 })
 
-app.get("/me", requireAuth, (req: Request, res: Response)=>{
-    res.status(200).json({ok: true, userId: req.userId})
-})
+
 
 app.listen(PORT, ()=>{
     console.log(`Server is running on port ${PORT}`)
