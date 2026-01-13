@@ -1,5 +1,5 @@
 import {prisma} from "../config/prisma";
-import { formatUTCDate, getTodayUTCDate,getYesterdayUTCDate } from "../utils/utc";
+import { addDaysUTC, formatUTCDate, getTodayUTCDate,getYesterdayUTCDate } from "../utils/utc";
 import type { HabitBox, HabitMeta, HabitState } from "../contracts/habitState";
 
 
@@ -17,6 +17,17 @@ function buildEmptyBoxes(): HabitBox[]{
 // fetch checkins and add them to a set
 function checkinsToSet(checkins: {checkinDate: Date}[]): Set<string>{
     return new Set(checkins.map((item)=>formatUTCDate(item.checkinDate)))
+}
+
+// compute current streak from checkin set
+function computeCurrentStreak(anchor: string, checkinSet: Set<string>): number {
+    let streak = 0;
+    let cursor=anchor;
+    while(streak < 21 && checkinSet.has(cursor)){
+        streak++;
+        cursor  = addDaysUTC(cursor, -1);
+    }
+    return streak;
 }
 
 export async function getHabitStateForUser(userId: string): Promise<HabitState>{
@@ -37,6 +48,7 @@ export async function getHabitStateForUser(userId: string): Promise<HabitState>{
    const habitMeta: HabitMeta | null = habit ? habit : null;
 
    let checkInToday = false;
+   let currentStreak = 0;
    if(habit){
     const todayDate= new Date(`${todayUTC}T00:00:00.000Z`);
     const todayCheckIn = await prisma.habitCheckin.findUnique({
@@ -59,13 +71,16 @@ export async function getHabitStateForUser(userId: string): Promise<HabitState>{
     })
     const checkinSet = checkinsToSet(recentCheckIns)
 
+    // deciding anchor and computing streak
+    const anchorDate = checkInToday ? todayUTC : getYesterdayUTCDate();
+    currentStreak = computeCurrentStreak(anchorDate, checkinSet)
    }
 
    return {
         habit: habitMeta,
         todayUTC,
         checkedInToday: checkInToday,
-        currentStreak: 0,
+        currentStreak: currentStreak,
         boxes: buildEmptyBoxes()
    }
 }

@@ -19,3 +19,10 @@ export function getYesterdayUTCDate(): string {
     now.setUTCDate(now.getUTCDate()-1);
     return formatUTCDate(now)
 }
+
+// computes prev days
+export function addDaysUTC(dateStr: string, delta: number): string {
+    const d = new Date(`${dateStr}T00:00:00.000Z`);
+    d.setUTCDate(d.getUTCDate() + delta);
+    return formatUTCDate(d);
+}
