@@ -4,12 +4,18 @@ import type { HabitBox, HabitMeta, HabitState } from "../contracts/habitState";
 
 
 
-function buildEmptyBoxes(): HabitBox[]{
+function buildBoxes(currentStreak: number, checkedInToday: boolean, allDone: boolean): HabitBox[]{
+    const nextEditableDay = currentStreak+1;
     return Array.from({length: 21}, (_, i)=>{
+        const day = i+1;
+        let status = day<=currentStreak;
+
+        const canEdit = !allDone && !checkedInToday && day === nextEditableDay && currentStreak < 21;
+
         return {
-            day: i+1,
-            status: false,
-            canEdit: i===0
+            day,
+            status,
+            canEdit
         }
     })
 }
@@ -49,6 +55,7 @@ export async function getHabitStateForUser(userId: string): Promise<HabitState>{
 
    let checkInToday = false;
    let currentStreak = 0;
+   const allDone = habit ? habit.allDone : false;
    if(habit){
     const todayDate= new Date(`${todayUTC}T00:00:00.000Z`);
     const todayCheckIn = await prisma.habitCheckin.findUnique({
@@ -81,6 +88,6 @@ export async function getHabitStateForUser(userId: string): Promise<HabitState>{
         todayUTC,
         checkedInToday: checkInToday,
         currentStreak: currentStreak,
-        boxes: buildEmptyBoxes()
+        boxes: buildBoxes(currentStreak, checkInToday, allDone)
    }
 }
