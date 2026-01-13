@@ -12,7 +12,7 @@ function buildEmptyBoxes(): HabitBox[]{
     })
 }
 
-export async function getHabitStateForUser(habitId: string, userId: string): Promise<HabitState>{
+export async function getHabitStateForUser(userId: string): Promise<HabitState>{
     const todayUTC = getTodayUTCDate();
 
     const habit = await prisma.habit.findUnique({

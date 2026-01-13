@@ -7,6 +7,7 @@ import { configurePassport } from "./config/passport";
 import passport from "passport";
 import authRoutes from "./routes/auth.routes";
 import { requireAuth } from "./middlewares/requireAuth";
+import habitRoutes from "./routes/habits.route";
 
 
 dotenv.config();
@@ -32,6 +33,8 @@ app.use("/auth", authRoutes)
 app.get("/health", (req: Request, res: Response)=>{
     res.status(200).json({ok: true, message: "Sab changa si"})
 })
+
+app.use("/api/habits", habitRoutes);
 
 
 
