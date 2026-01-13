@@ -1,6 +1,8 @@
 import {prisma} from "../config/prisma";
-import { getTodayUTCDate } from "../utils/utc";
+import { formatUTCDate, getTodayUTCDate,getYesterdayUTCDate } from "../utils/utc";
 import type { HabitBox, HabitMeta, HabitState } from "../contracts/habitState";
+
+
 
 function buildEmptyBoxes(): HabitBox[]{
     return Array.from({length: 21}, (_, i)=>{
@@ -10,6 +12,11 @@ function buildEmptyBoxes(): HabitBox[]{
             canEdit: i===0
         }
     })
+}
+
+// fetch checkins and add them to a set
+function checkinsToSet(checkins: {checkinDate: Date}[]): Set<string>{
+    return new Set(checkins.map((item)=>formatUTCDate(item.checkinDate)))
 }
 
 export async function getHabitStateForUser(userId: string): Promise<HabitState>{
@@ -42,6 +49,16 @@ export async function getHabitStateForUser(userId: string): Promise<HabitState>{
         select: {id: true}
     })
     checkInToday = !! todayCheckIn
+
+    // fetch all checkins for habit
+    const recentCheckIns = await prisma.habitCheckin.findMany({
+        where: {habitId: habit.id},
+        select: {checkinDate: true},
+        orderBy: {checkinDate: "desc"},
+        take: 21
+    })
+    const checkinSet = checkinsToSet(recentCheckIns)
+
    }
 
    return {
