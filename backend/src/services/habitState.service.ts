@@ -29,10 +29,25 @@ export async function getHabitStateForUser(userId: string): Promise<HabitState>{
 
    const habitMeta: HabitMeta | null = habit ? habit : null;
 
+   let checkInToday = false;
+   if(habit){
+    const todayDate= new Date(`${todayUTC}T00:00:00.000Z`);
+    const todayCheckIn = await prisma.habitCheckin.findUnique({
+        where: {
+            habitId_checkinDate:{
+                habitId: habit.id,
+                checkinDate: todayDate
+            }
+        },
+        select: {id: true}
+    })
+    checkInToday = !! todayCheckIn
+   }
+
    return {
         habit: habitMeta,
         todayUTC,
-        checkedInToday: false,
+        checkedInToday: checkInToday,
         currentStreak: 0,
         boxes: buildEmptyBoxes()
    }
