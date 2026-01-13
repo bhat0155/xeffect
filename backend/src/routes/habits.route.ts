@@ -36,4 +36,26 @@ router.post("/", requireAuth, async (req,res)=>{
     res.status(201).json({state})
 })
 
+router.patch("/:id", requireAuth, async (req,res)=>{
+    const userId = req.userId as string;
+    const habitId = req.params.id;
+    const name = (req.body?.name ?? "").trim();
+    if(!name || name.length > 60){
+        return res.status(400).json({code: "Validation_Error", message: "Habit name should be between 1 and 60 characters"})
+    };
+
+    const habit = await prisma.habit.findUnique({where: {id: habitId, userId}, select: {id: true}});
+   if(!habit){
+    return res.status(404).json({code: "NOT_FOUND", message: "Habit not found"})
+   }
+
+   await prisma.habit.update({
+    where: {id: habitId},
+    data: {name}
+   })
+
+   const state = await getHabitStateForUser(userId);
+   res.status(200).json({state})
+})
+
 export default router;
