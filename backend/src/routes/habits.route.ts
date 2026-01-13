@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { getHabitStateForUser } from "../services/habitState.service";
+import {prisma} from "../config/prisma";
 
 const router = Router();
 
@@ -9,6 +10,30 @@ router.get("/me", requireAuth, async (req,res)=>{
     const userId = req.userId as string;
     const state = await getHabitStateForUser(userId);
     res.status(200).json({state})
+})
+
+router.post("/", requireAuth, async (req,res)=>{
+    const userId = req.userId as string;
+    const name = (req.body?.name ?? "").trim();
+    if(!name || name.length > 60){
+        return res.status(400).json({code: "Validation_Error", message: "Habit name should be between 1 and 60 characters"})
+    };
+
+    // delete old habit if exists
+    await prisma.habit.deleteMany({where: {userId}});
+
+    // create new habit
+    await prisma.habit.create({
+        data: {
+            userId,
+            name,
+            isPublic: userId === process.env.EKAM_USER_ID,
+            publicSlug: userId === process.env.EKAM_USER_ID ? "ekam-habit" : null
+        }
+    })
+
+    const state= await getHabitStateForUser(userId);
+    res.status(201).json({state})
 })
 
 export default router;
