@@ -111,4 +111,14 @@ router.post("/:id/save", requireAuth, async (req, res)=>{
     res.status(201).json(state);
 })
 
+// public route to get habit state by public slug
+router.get("/:publicSlug", async (req, res)=>{
+    const publicSlug = (req.params.publicSlug ?? "").trim();
+    if(!publicSlug){
+        return res.status(400).json({code: "VALIDATION_ERROR", message: "Public slug is required"})
+    }
+
+    return res.status(200).json(publicSlug)
+})
+
 export default router;

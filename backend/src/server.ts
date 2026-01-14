@@ -35,6 +35,7 @@ app.get("/health", (req: Request, res: Response)=>{
 })
 
 app.use("/api/habits", habitRoutes);
+app.use("/api/public", habitRoutes)
 
 
 
