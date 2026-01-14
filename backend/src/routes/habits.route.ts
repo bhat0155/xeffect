@@ -99,6 +99,15 @@ router.post("/:id/save", requireAuth, async (req, res)=>{
     })
         state.habit.bestStreak = nextBest
     }
+
+    // update allDone if needed
+    if(state.habit && state.currentStreak >=21 && !state.habit.allDone){
+        await prisma.habit.update({
+            where: {id: habitId},
+            data: {allDone: true}
+        });
+        state.habit.allDone = true
+    }
     res.status(201).json(state);
 })
 
