@@ -89,6 +89,16 @@ router.post("/:id/save", requireAuth, async (req, res)=>{
     }
     }
     const state = await getHabitStateForUser(userId);
+
+    // update best streak if needed
+    const nextBest = Math.max(state?.habit?.bestStreak ?? 0, state.currentStreak);
+    if(state.habit && nextBest > state.habit.bestStreak){
+        await prisma.habit.update({
+        where: {id: habitId},
+        data: {bestStreak: nextBest}
+    })
+        state.habit.bestStreak = nextBest
+    }
     res.status(201).json(state);
 })
 
