@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { getHabitStateForUser } from "../services/habitState.service";
 import {prisma} from "../config/prisma";
+import { getTodayUTCDate } from "../utils/utc";
 
 const router = Router();
 
@@ -56,6 +57,39 @@ router.patch("/:id", requireAuth, async (req,res)=>{
 
    const state = await getHabitStateForUser(userId);
    res.status(200).json(state)
+});
+
+router.post("/:id/save", requireAuth, async (req, res)=>{
+    const userId = req.userId as string;
+    const habitId = req.params.id;
+
+    // ownership check
+    const habit = await prisma.habit.findFirst({where: {id: habitId, userId}, select: {id: true, allDone: true}});
+    if(!habit){
+        return res.status(404).json({code: "NOT_FOUND", message: "Habit not found"})
+    }
+    if(habit.allDone){
+        return res.status(400).json({code: "HABIT_COMPLETED", message: "Habit already completed"});
+    }
+
+    // insert today's checkin
+    const todayUTC = getTodayUTCDate();
+    const todayDate = new Date(`${todayUTC}T00:00:00.000Z`);
+   
+    try {
+         await prisma.habitCheckin.create({
+        data: {
+            habitId,
+            checkinDate: todayDate
+        }
+    })
+    }catch(err){
+         if ((err as any)?.code !== "P2002") {
+      throw err; 
+    }
+    }
+    const state = await getHabitStateForUser(userId);
+    res.status(201).json(state);
 })
 
 export default router;
