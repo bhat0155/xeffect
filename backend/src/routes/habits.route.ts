@@ -138,14 +138,30 @@ router.get("/:publicSlug", async (req, res)=>{
         select: {userId: true, id: true, name: true}
     });
     if(!habit){
-        return res.status(404).json({code: "NOT_FOUND", message: "Public habit not found"});
+         const state = await getHabitStateForUser(process.env.EKAM_USER_ID!);
+         const placeholder =  {
+            ...state,
+            habit: null,
+            checkedInToday: false,
+            currentStreak: 0,
+            boxes: state.boxes.map((b) => ({ ...b, status: false, canEdit: false })),
+            ai: undefined,
+            
+         }
+         return res.status(200).json(placeholder)
+
     }
 
-    const state = await getHabitStateForUser(habit.userId);
+    const state=await getHabitStateForUser(habit.userId);
     const readOnlyState = {
         ...state,
-        boxes: state.boxes.map(item=> ({...item, canEdit: false})),
+        boxes: state.boxes.map((item)=>({
+            ...item,
+            canEdit: false
+        }))
     }
+
+    
     res.status(200).json(readOnlyState);
 })
 
