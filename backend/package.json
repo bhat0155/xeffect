@@ -6,7 +6,9 @@
     "dev": "nodemon --watch src --ext ts --exec \"node -r ts-node/register\" src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "seed": "ts-node src/scripts/seed.ts",
+    "seed:reset": "ts-node src/scripts/seed.ts -- reset"
   },
   "author": "ekam",
   "license": "ISC",
