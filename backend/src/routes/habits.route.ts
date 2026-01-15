@@ -3,6 +3,7 @@ import { requireAuth } from "../middlewares/requireAuth";
 import { getHabitStateForUser } from "../services/habitState.service";
 import {prisma} from "../config/prisma";
 import { getTodayUTCDate } from "../utils/utc";
+import { getMilestoneAIMessage } from "../services/aiMilestone.service";
 
 const router = Router();
 
@@ -64,7 +65,7 @@ router.post("/:id/save", requireAuth, async (req, res)=>{
     const habitId = req.params.id;
 
     // ownership check
-    const habit = await prisma.habit.findFirst({where: {id: habitId, userId}, select: {id: true, allDone: true}});
+    const habit = await prisma.habit.findFirst({where: {id: habitId, userId}, select: {id: true, allDone: true, name: true, lastMilestoneReached: true}});
     if(!habit){
         return res.status(404).json({code: "NOT_FOUND", message: "Habit not found"})
     }
@@ -89,6 +90,20 @@ router.post("/:id/save", requireAuth, async (req, res)=>{
     }
     }
     const state = await getHabitStateForUser(userId);
+
+    // AI milestone message
+    const ai = await getMilestoneAIMessage(
+        habit.name,
+        state.currentStreak,
+        habit.lastMilestoneReached
+    );
+    if(ai){
+        await prisma.habit.update({
+            where: {id: habitId},
+            data: {lastMilestoneReached: ai.milestoneDay}   
+        })
+        state.ai = ai;
+    }
 
     // update best streak if needed
     const nextBest = Math.max(state?.habit?.bestStreak ?? 0, state.currentStreak);
@@ -118,7 +133,7 @@ router.get("/:publicSlug", async (req, res)=>{
         return res.status(400).json({code: "VALIDATION_ERROR", message: "Public slug is required"})
     }
 
-    const habit = await prisma.habit.findUnique({
+    const habit = await prisma.habit.findFirst({
         where: {publicSlug, isPublic: true},
         select: {userId: true, id: true, name: true}
     });
