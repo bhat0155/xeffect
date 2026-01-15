@@ -8,6 +8,8 @@ import passport from "passport";
 import authRoutes from "./routes/auth.routes";
 import { requireAuth } from "./middlewares/requireAuth";
 import habitRoutes from "./routes/habits.route";
+import swaggerUi from "swagger-ui-express";
+import { openapiSpec } from "./docs/openapi";
 
 
 dotenv.config();
@@ -28,6 +30,7 @@ configurePassport();
 app.use(passport.initialize())
 
 app.use("/auth", authRoutes)
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
 // health route
 app.get("/health", (req: Request, res: Response)=>{
