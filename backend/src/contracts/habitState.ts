@@ -1,7 +1,7 @@
 export type HabitBox = {
     day: number;
-    status: Boolean;
-    canEdit: Boolean;
+    status: boolean;
+    canEdit: boolean;
 }
 
 export type HabitMeta = {
