@@ -21,6 +21,13 @@ router.post("/", requireAuth, async (req,res)=>{
         return res.status(400).json({code: "VALIDATION_ERROR", message: "Habit name should be between 1 and 60 characters"})
     };
 
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true }
+    });
+    const publicEmail = (process.env.PUBLIC_HABIT_EMAIL || "ekamsingh643@gmail.com").toLowerCase();
+    const isPublic = (user?.email || "").toLowerCase() === publicEmail;
+
     // delete old habit if exists
     await prisma.habit.deleteMany({where: {userId}});
 
@@ -29,8 +36,8 @@ router.post("/", requireAuth, async (req,res)=>{
         data: {
             userId,
             name,
-            isPublic: userId === process.env.EKAM_USER_ID,
-            publicSlug: userId === process.env.EKAM_USER_ID ? "ekam-xeffect" : null
+            isPublic,
+            publicSlug: isPublic ? "ekam-xeffect" : null
         }
     })
 

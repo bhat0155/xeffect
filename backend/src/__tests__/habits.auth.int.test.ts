@@ -30,7 +30,16 @@ describe("Auth Protection", () => {
   });
 
   it("GET /api/habits/me returns 200 when user is logged in", async () => {
-    const cookie = makeAuthCookie("test-user-ekam");
+    const userId = "test-user-ekam";
+    await prisma.user.create({
+      data: {
+        id: userId,
+        email: `test+${userId}@example.com`,
+        name: "Test User",
+        googleId: "google-test-id",
+      },
+    });
+    const cookie = makeAuthCookie(userId);
 
     const res = await request(app)
       .get("/api/habits/me")
