@@ -8,15 +8,29 @@ const router= Router()
 router.get("/:publicSlug", async (req, res)=>{
     const publicSlug = (req.params.publicSlug ?? "").trim();
     if(!publicSlug){
-        return res.status(400).json({code: "VALIDATION_ERROR", message: "Public slug is required"})
+        return res.status(404).json({code: "VALIDATION_ERROR", message: "Public slug is required"})
     }
 
     const habit = await prisma.habit.findFirst({
         where: {publicSlug, isPublic: true},
         select: {userId: true, id: true, name: true}
     });
+
     if(!habit){
-         const state = await getHabitStateForUser(process.env.EKAM_USER_ID!);
+        return res.status(404).json({code: "MISSING_HABIT", message: "habit not found"})
+    }
+
+    const ekam = await prisma.user.findUnique({
+        where: {id: habit.userId},
+        select: {id: true}
+    })
+
+    if(!ekam){
+        return res.status(404).json({code: "MISSING_ADMIN", message: "Ekam Id not found"})
+    }
+
+    if(!habit){
+         const state = await getHabitStateForUser(ekam.id);
          const placeholder =  {
             ...state,
             habit: null,

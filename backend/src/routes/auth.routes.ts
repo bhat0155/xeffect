@@ -12,7 +12,7 @@ router.get("/google/callback", passport.authenticate("google", {failureRedirect:
 
     const jwtSecret = process.env.JWT_SECRET;
     if(!jwtSecret){
-        return res.status(500).json({ok: false, message:"JWT_SECRET not configured"})
+        return res.status(500).json({code: "SERVER_MISCONFIG", message:"JWT_SECRET not configured"})
     }
 
     const token = jwt.sign({userId: user.userId}, jwtSecret, {expiresIn: "7d"});

@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -41,3 +41,13 @@ app.get("/health", (req: Request, res: Response) => {
 
 app.use("/api/habits", habitRoutes);
 app.use("/api/public", publicRoutes);
+
+// 404 error handler
+app.use((req, res)=>{
+  res.status(404).json({ code: "NOT_FOUND", message: "Route not found" });
+})
+
+app.use((err: unknown, req: Request, res: Response, _next: NextFunction)=>{
+    console.log(err);
+  res.status(500).json({ code: "SERVER_ERROR", message: "Something went wrong" });
+})

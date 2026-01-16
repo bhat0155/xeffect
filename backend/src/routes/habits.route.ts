@@ -14,36 +14,56 @@ router.get("/me", requireAuth, async (req,res)=>{
     res.status(200).json(state)
 })
 
-router.post("/", requireAuth, async (req,res)=>{
+router.post("/", requireAuth, async (req, res) => {
+  try {
     const userId = req.userId as string;
     const name = (req.body?.name ?? "").trim();
-    if(!name || name.length > 60){
-        return res.status(400).json({code: "VALIDATION_ERROR", message: "Habit name should be between 1 and 60 characters"})
-    };
+    if (!name || name.length > 60) {
+      return res.status(400).json({
+        code: "VALIDATION_ERROR",
+        message: "Habit name should be between 1 and 60 characters",
+      });
+    }
 
     const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true }
+      where: { id: userId },
+      select: { email: true },
     });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ code: "AUTH_INVALID", message: "User not found for token" });
+    }
+
     const publicEmail = (process.env.PUBLIC_HABIT_EMAIL || "ekamsingh643@gmail.com").toLowerCase();
-    const isPublic = (user?.email || "").toLowerCase() === publicEmail;
+    const isPublic = (user.email || "").toLowerCase() === publicEmail;
 
-    // delete old habit if exists
-    await prisma.habit.deleteMany({where: {userId}});
+    await prisma.habit.deleteMany({ where: { userId } });
 
-    // create new habit
     await prisma.habit.create({
-        data: {
-            userId,
-            name,
-            isPublic,
-            publicSlug: isPublic ? "ekam-xeffect" : null
-        }
-    })
+      data: {
+        userId,
+        name,
+        isPublic,
+        publicSlug: isPublic ? "ekam-xeffect" : null,
+      },
+    });
 
-    const state= await getHabitStateForUser(userId);
-    res.status(201).json(state)
-})
+    const state = await getHabitStateForUser(userId);
+    return res.status(201).json(state);
+  } catch (err: any) {
+    if (err?.code === "P2003") {
+      return res.status(400).json({
+        code: "INVALID_REFERENCE",
+        message: "User does not exist for this token",
+      });
+    }
+
+    console.error(err);
+    return res.status(500).json({ code: "SERVER_ERROR", message: "Something went wrong" });
+  }
+});
 
 router.patch("/:id", requireAuth, async (req,res)=>{
     const userId = req.userId as string;
@@ -70,6 +90,14 @@ router.patch("/:id", requireAuth, async (req,res)=>{
 router.post("/:id/save", requireAuth, async (req, res)=>{
     const userId = req.userId as string;
     const habitId = req.params.id;
+
+    const user = await prisma.user.findUnique({
+        where: {id: userId},
+        select: {id: true}
+    })
+    if(!user){
+        return res.status(404).json({ code: "AUTH_INVALID", message: "User not found for token" })
+    }
 
     // ownership check
     const habit = await prisma.habit.findFirst({where: {id: habitId, userId}, select: {id: true, allDone: true, name: true, lastMilestoneReached: true}});
