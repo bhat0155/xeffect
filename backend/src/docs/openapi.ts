@@ -255,12 +255,8 @@ export const openapiSpec: OpenAPIV3.Document = {
         ],
         responses: {
           "200": {
-            description: "HabitState (all boxes canEdit=false)",
+            description: "HabitState (all boxes canEdit=false; empty state if not found)",
             content: { "application/json": { schema: { $ref: "#/components/schemas/HabitState" } } },
-          },
-          "404": {
-            description: "Public habit not found",
-            content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } } },
           },
         },
       },
