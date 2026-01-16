@@ -10,6 +10,7 @@ import { configurePassport } from "./config/passport";
 import authRoutes from "./routes/auth.routes";
 import habitRoutes from "./routes/habits.route";
 import { openapiSpec } from "./docs/openapi";
+import publicRoutes from "./routes/public.routes"
 
 dotenv.config();
 
@@ -39,4 +40,4 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 app.use("/api/habits", habitRoutes);
-app.use("/api/public", habitRoutes);
+app.use("/api/public", publicRoutes);
