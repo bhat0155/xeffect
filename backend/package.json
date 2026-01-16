@@ -6,9 +6,9 @@
     "dev": "nodemon --watch src --ext ts --exec \"node -r ts-node/register\" src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "dotenv -e .env.test -- jest",
+    "test:watch": "dotenv -e .env.test -- jest --watch",
+    "test:coverage": "dotenv -e .env.test -- jest --coverage",
     "seed": "ts-node src/scripts/seed.ts",
     "seed:reset": "ts-node src/scripts/seed.ts -- reset"
   },
