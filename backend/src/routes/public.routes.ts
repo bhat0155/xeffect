@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {prisma} from "../config/prisma"
 import { getHabitStateForUser } from "../services/habitState.service";
+import { getTodayUTCDate } from "../utils/utc";
 
 const router= Router()
 
@@ -20,9 +21,18 @@ router.get("/:publicSlug", async (req, res, next) => {
     });
 
     if (!habit) {
-      return res
-        .status(404)
-        .json({ code: "NOT_FOUND", message: "Public habit not found" });
+      const emptyState = {
+        habit: null,
+        todayUTC: getTodayUTCDate(),
+        checkedInToday: false,
+        currentStreak: 0,
+        boxes: Array.from({ length: 21 }, (_, i) => ({
+          day: i + 1,
+          status: false,
+          canEdit: false,
+        })),
+      };
+      return res.status(200).json(emptyState);
     }
 
     const state = await getHabitStateForUser(habit.userId);
