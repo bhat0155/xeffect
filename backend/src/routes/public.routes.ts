@@ -10,7 +10,7 @@ router.get("/:publicSlug", async (req, res, next) => {
     const publicSlug = (req.params.publicSlug ?? "").trim();
     if (!publicSlug) {
       return res
-        .status(404)
+        .status(400)
         .json({ code: "VALIDATION_ERROR", message: "Public slug is required" });
     }
 
@@ -22,31 +22,7 @@ router.get("/:publicSlug", async (req, res, next) => {
     if (!habit) {
       return res
         .status(404)
-        .json({ code: "MISSING_HABIT", message: "habit not found" });
-    }
-
-    const ekam = await prisma.user.findUnique({
-      where: { id: habit.userId },
-      select: { id: true },
-    });
-
-    if (!ekam) {
-      return res
-        .status(404)
-        .json({ code: "MISSING_ADMIN", message: "Ekam Id not found" });
-    }
-
-    if (!habit) {
-      const state = await getHabitStateForUser(ekam.id);
-      const placeholder = {
-        ...state,
-        habit: null,
-        checkedInToday: false,
-        currentStreak: 0,
-        boxes: state.boxes.map((b) => ({ ...b, status: false, canEdit: false })),
-        ai: undefined,
-      };
-      return res.status(200).json(placeholder);
+        .json({ code: "NOT_FOUND", message: "Public habit not found" });
     }
 
     const state = await getHabitStateForUser(habit.userId);
