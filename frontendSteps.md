@@ -9,7 +9,28 @@
 
 ---
 
-## Phase 0 — Setup & Tooling
+## Critical sanity fixes (do these early)
+These prevent “why is auth not working?” issues.
+
+1) **CORS + cookies**
+- Backend `cors({ origin: FRONTEND_ORIGIN, credentials: true })`
+- Frontend fetch uses `credentials: "include"` for any endpoint that relies on cookies.
+
+2) **OAuth redirect**
+- Backend redirects to `FRONTEND_ORIGIN` after `/auth/google/callback`.
+- Frontend handles post-redirect by calling `GET /api/habits/me`.
+
+3) **Logout**
+- Logout must be called from the browser (frontend) to clear browser cookie:
+  - `POST /auth/logout` with `credentials: "include"`.
+
+**DoD**
+- Login → cookie appears in browser
+- Logout from frontend → cookie disappears and `/api/habits/me` returns 401
+
+---
+
+## Phase 0 — Setup & Tooling (Day 1)
 
 ### Step 0.1 — Create project
 **Action**
@@ -21,9 +42,7 @@
 - App runs locally
 - DaisyUI component classes render (verify with a styled button + card)
 
----
-
-### Step 0.2 — Add routing + env setup
+### Step 0.2 — Routing + env setup
 **Action**
 - Install React Router
 - Add env var: `VITE_API_URL` (default `http://localhost:4000`)
@@ -31,8 +50,6 @@
 **DoD**
 - You can navigate between 2 routes without reload
 - API base URL is configurable through env
-
----
 
 ### Step 0.3 — Folder structure
 **Create**
@@ -48,7 +65,7 @@
 
 ---
 
-## Phase 1 — Routing & Redirect Logic
+## Phase 1 — Routing & App Shell (Day 1)
 
 ### Step 1.1 — Define routes
 **Routes**
@@ -56,28 +73,41 @@
 - `/login` (Google login CTA)
 - `/app` (private dashboard)
 - `/public/:slug` (public read-only)
+- `/about`
 - `*` (Not Found)
 
 **DoD**
 - All routes render
 - Unknown route shows a 404 page
 
----
+### Step 1.2 — Navbar + layout
+**Navbar**
+- Home, About
+- Right side: Login/Logout button **placeholder UI only** (no logic yet)
 
-### Step 1.2 — Implement `/` smart redirect
-**Logic**
-- On `/`, call `GET /api/habits/me`
-  - If `200` → redirect to `/app`
-  - If `401` → redirect to `/public/ekam-xeffect`
-  - If other errors → show an error page with retry
+**Home hero**
+- Hero image
+- Public slug text shown under hero (`ekam-xeffect`)
 
 **DoD**
-- Visiting `http://localhost:3000/` reliably routes you to the correct page
+- Navbar renders on all pages
+- Home/About navigation works
+- Layout doesn’t jump between routes
+
+### Step 1.3 — `/` smart redirect (minimal auth detection)
+**Logic**
+- On `/`, call `GET /api/habits/me` (with credentials)
+  - If `200` → redirect `/app`
+  - If `401` → redirect `/public/ekam-xeffect`
+  - Else → show error page with “Retry”
+
+**DoD**
+- Visiting `/` always lands you on the correct page
 - No infinite redirects
 
 ---
 
-## Phase 2 — API Client + Typed Contracts
+## Phase 2 — API Client + Typed Contracts (Day 2)
 
 ### Step 2.1 — Create API wrapper
 **Rules**
@@ -89,12 +119,11 @@
   - `createHabit(name)`
   - `renameHabit(id, name)`
   - `saveToday(id)`
+  - `logout()`
 
 **DoD**
 - `GET /health` works from browser
-- `GET /api/habits/me` properly detects `401` vs `200`
-
----
+- `GET /api/habits/me` reliably differentiates `401` vs `200`
 
 ### Step 2.2 — Types
 **Create types**
@@ -105,11 +134,11 @@
 
 **DoD**
 - Components do not use `any`
-- You can type-check the API results end-to-end
+- API results are typed end-to-end
 
 ---
 
-## Phase 3 — Auth State (Cookie-Based)
+## Phase 3 — Auth State + Context (Day 2)
 
 ### Step 3.1 — AuthContext
 **State**
@@ -119,26 +148,36 @@
 
 **Rules**
 - `refreshAuth()` calls `GET /api/habits/me`
-- If `200`, set authed + store the returned state (or store separately)
-- If `401`, set not authed and clear private state
+- If `200`, set authed
+- If `401`, set not authed
 
 **DoD**
 - Refresh page keeps correct auth state (cookie-based)
-- `/app` never shows private UI if not authed
-
----
+- Navbar can react to auth state (Login vs Logout)
 
 ### Step 3.2 — Route protection
 **Action**
 - If user hits `/app` while not logged in:
-  - redirect to `/public/ekam-xeffect` (not `/login`, because `/` already funnels)
+  - redirect to `/public/ekam-xeffect`
 
 **DoD**
-- `/app` is protected and stable
+- `/app` cannot show private UI while logged out
+
+### Step 3.3 — Navbar Login/Logout wiring
+**Login**
+- Button navigates to `VITE_API_URL + /auth/google`
+
+**Logout**
+- Button calls `POST /auth/logout` with credentials
+- Then calls `refreshAuth()` and redirects to `/public/ekam-xeffect`
+
+**DoD**
+- Login starts OAuth and returns to frontend
+- Logout clears cookie (when triggered from browser)
 
 ---
 
-## Phase 4 — Public Page (Read-Only)
+## Phase 4 — Public Page (Read-Only) (Day 3)
 
 ### Step 4.1 — Build `/public/:slug`
 **Action**
@@ -147,57 +186,48 @@
   - title
   - streak metadata
   - 21-box grid (all non-editable)
-  - CTA button: “Create your own” → goes to `/login`
+  - CTA: “Create your own” → `/login`
 
 **DoD**
 - Public page loads without auth
-- All boxes show but cannot be clicked
-
----
+- Boxes render and cannot be clicked
 
 ### Step 4.2 — Missing public habit behavior
 Backend returns placeholder with `habit: null`.
 
 **Action**
-- Show:
-  - empty chart (all false)
-  - CTA “Create your own”
-  - short explanation: “No public habit found, here’s an empty chart.”
+- Show empty chart + explanation + CTA
 
 **DoD**
 - No crash
-- Clean empty-state UX
+- Clean empty state UX
 
 ---
 
-## Phase 5 — Private Dashboard (`/app`)
+## Phase 5 — Private Dashboard (`/app`) (Day 3)
 
 ### Step 5.1 — Load private habit state
 **Action**
 - On `/app`, call `GET /api/habits/me`
-- Render based on:
-  - `habit === null` → show “Create habit” button → opens modal
-  - `habit !== null` → show grid + actions
+- Render:
+  - `habit === null` → “Create habit” button → opens modal
+  - `habit !== null` → grid + actions
 
 **DoD**
-- `/app` loads state and renders correctly
-- Error handling is visible and consistent
-
----
+- `/app` always shows correct state based on backend response
+- Error handling is visible
 
 ### Step 5.2 — HabitGrid component
 **Rules**
 - Always render 21 boxes
 - Styles:
-  - done: visually filled (DaisyUI style)
-  - not done: neutral
+  - done: filled
+  - neutral: not done
   - editable: highlighted + clickable
 
 **DoD**
 - Exactly one editable box when allowed
 - No editable boxes when `checkedInToday=true` or `allDone=true`
-
----
 
 ### Step 5.3 — Save Today action
 **Action**
@@ -210,11 +240,11 @@ Backend returns placeholder with `habit: null`.
 
 ---
 
-## Phase 6 — Create Habit Modal (DaisyUI)
+## Phase 6 — Create Habit Modal (DaisyUI) (Day 4)
 
 ### Step 6.1 — Modal behavior
 **Action**
-- Modal opens from `/app` when `habit === null`
+- Modal opens on `/app` when `habit === null`
 - Contains:
   - input (max 60)
   - Create button
@@ -223,7 +253,7 @@ Backend returns placeholder with `habit: null`.
 **Rules**
 - Client-side validate (1..60)
 - On submit call `POST /api/habits`
-- Close modal on success and show new state
+- Close modal on success and refresh state
 
 **DoD**
 - Habit gets created and dashboard updates without refresh
@@ -231,11 +261,11 @@ Backend returns placeholder with `habit: null`.
 
 ---
 
-## Phase 7 — Rename Habit (Optional but recommended)
+## Phase 7 — Rename Habit (Day 4)
 
-### Step 7.1 — Rename modal or inline
+### Step 7.1 — Rename modal
 **Action**
-- A “Rename” button opens a modal (consistent UX)
+- “Rename” button opens modal
 - Calls `PATCH /api/habits/:id`
 
 **DoD**
@@ -243,51 +273,29 @@ Backend returns placeholder with `habit: null`.
 
 ---
 
-## Phase 8 — Login Flow
+## Phase 8 — UX Polish + AI Milestone (Day 5)
 
-### Step 8.1 — `/login` page
+### Step 8.1 — Loading states
 **Action**
-- One primary CTA: “Continue with Google”
-- Button navigates user to backend Google auth entry route
-
-**After redirect back**
-- Call `refreshAuth()`
-- Redirect to `/app` on success, else `/public/ekam-xeffect`
-
-**DoD**
-- Login brings user into `/app` with loaded state
-- No manual token storage in frontend
-
----
-
-## Phase 9 — UX Polish
-
-### Step 9.1 — Loading states
-**Action**
-- Skeleton for grid + metadata on both public and private pages
+- Skeleton for grid + metadata on public and private pages
 
 **DoD**
 - No flashing or awkward layout shifts
 
----
-
-### Step 9.2 — Error banners
+### Step 8.2 — Error banners
 **Action**
-- Standard DaisyUI alert component
-- Show `message`, optionally show `code` in small text
+- Standard DaisyUI alert component for `{code,message}`
 
 **DoD**
-- Every failed request is visible to user
+- Every failed request becomes visible to the user
 
----
-
-### Step 9.3 — AI milestone display
+### Step 8.3 — AI milestone display
 **Action**
-- If `ai` exists in state, show a “Milestone” card/banner
+- If `ai` exists in state, show a milestone banner/card
 
 **DoD**
 - Shown only when present
-- Does not duplicate across refreshes
+- Looks clean and doesn’t disrupt layout
 
 ---
 
@@ -297,18 +305,22 @@ Backend returns placeholder with `habit: null`.
   - logged in → `/app`
 - Public page loads and is read-only
 - `/app` redirects if logged out
+- Navbar Login triggers OAuth
+- Navbar Logout clears cookie (from browser)
 - Create habit modal works
 - Save today works and is idempotent
-- Rename works (if implemented)
+- Rename works
 - Refresh preserves auth state
+- AI milestone displays (when returned)
 
 ---
 
 ## Suggested Commits
 1. `chore(frontend): init vite react ts tailwind daisyui router`
-2. `feat(frontend): api client + typed contracts`
-3. `feat(frontend): smart redirect on home + auth context`
-4. `feat(frontend): public page + read-only grid`
-5. `feat(frontend): private dashboard + create habit modal`
-6. `feat(frontend): save today + idempotent UX`
-7. `feat(frontend): polish loading + errors + milestone card`
+2. `feat(frontend): app shell routes navbar home about`
+3. `feat(frontend): api client + typed contracts`
+4. `feat(frontend): auth context + smart redirects + navbar auth`
+5. `feat(frontend): public page + read-only grid`
+6. `feat(frontend): private dashboard + save today`
+7. `feat(frontend): create habit modal + rename`
+8. `feat(frontend): polish loading errors milestone`
