@@ -23,11 +23,24 @@ router.get("/google/callback", passport.authenticate("google", {failureRedirect:
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: "/"
     });
 
     // redirect to frontend
     const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:3000";
     res.redirect(frontendOrigin)
+})
+
+// logout, clears the auth cookie so subsequent requests give 401
+router.post("/logout", (req, res)=>{
+    res.clearCookie("xeffect_token", {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV == "production",
+        path: "/"
+    })
+
+    return res.status(200).json({loggedOut: true})
 })
 
 export default router;
