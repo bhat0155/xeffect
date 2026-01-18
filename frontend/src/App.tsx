@@ -1,15 +1,17 @@
+import { Navigate, Route, Routes } from "react-router-dom";
+import PublicLanding from "./pages/publicLanding";
+import About from "./pages/About";
+import AppPage from "./pages/AppPage";
 
-import './App.css'
-
-function App() {
-
-
+export default function App() {
   return (
-   <div>
-    <button className="btn btn-primary">DaisyUI works</button>
-    <div className="card bg-base-100 shadow-xl p-4 mt-4">Card</div>
-   </div>
-  )
-}
+    <Routes>
+      <Route path="/" element={<PublicLanding />} />
+      <Route path="/public/:slug" element={<PublicLanding />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/app" element={<AppPage />} />
 
-export default App
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
