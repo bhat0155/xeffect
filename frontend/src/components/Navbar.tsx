@@ -1,10 +1,10 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { apiFetch, apiUrl } from "../lib/api";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthContext } from "../contexts/AuthContext";
 
 export default function Navbar() {
     const navigate = useNavigate();
-    const {loading, isAuthed, refreshAuth} = useAuth();
+    const {loading, isAuthed, refreshAuth} = useAuthContext();
 
     const handleLogin = () =>{
         window.location.href = apiUrl("/auth/google")
