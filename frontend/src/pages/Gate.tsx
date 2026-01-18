@@ -1,8 +1,8 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthContext } from "../contexts/AuthContext";
 
 export default function Gate(){
-    const {loading, isAuthed} = useAuth();
+    const {loading, isAuthed} = useAuthContext();
 
     if(loading){
           return (
