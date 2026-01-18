@@ -1,19 +1,36 @@
+import { Navigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useAuth } from "../hooks/useAuth";
 
 export default function AppPage() {
-  return (
-    <div className="min-h-screen bg-base-200">
-      <Navbar />
-      <main className="max-w-5xl mx-auto p-6">
-        <div className="card bg-base-100 shadow">
+    const {loading, isAuthed, myState}=useAuth();
+
+    if(loading){
+          return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+    }
+
+    if(!isAuthed){
+  if (!isAuthed) return <Navigate to="/public/ekam-xeffect" replace />;
+
+    }
+return (
+    <div className="min-h-screen">
+      <div className="p-6 max-w-5xl mx-auto space-y-6">
+        <div className="text-3xl font-bold">My Progress (Private)</div>
+
+        <div className="card bg-base-100 border">
           <div className="card-body">
-            <h1 className="card-title text-2xl">Private Dashboard</h1>
-            <p className="opacity-80">
-              Placeholder for now. Next step we’ll call <code>/api/habits/me</code> and render real state.
-            </p>
+            <div className="text-xl font-semibold">State (Day 1: JSON debug)</div>
+            <pre className="p-4 rounded-xl bg-base-200 overflow-auto text-sm">
+              {JSON.stringify(myState, null, 2)}
+            </pre>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

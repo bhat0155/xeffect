@@ -1,19 +1,11 @@
-import Navbar from "../components/Navbar";
-
 export default function About() {
   return (
-    <div className="min-h-screen bg-base-200">
-      <Navbar />
-      <main className="max-w-5xl mx-auto p-6">
-        <div className="card bg-base-100 shadow">
-          <div className="card-body">
-            <h1 className="card-title text-2xl">About XEffect</h1>
-            <p className="opacity-80">
-              XEffect is a simple 21-day habit tracker with a public share page and a private dashboard.
-            </p>
-          </div>
-        </div>
-      </main>
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-3xl font-bold">About XEffect</h1>
+      <p className="mt-4 text-base-content/80">
+        XEffect is a simple 21-day habit tracker. Public page shows a read-only grid.
+        Logged in users see their private progress.
+      </p>
     </div>
   );
 }

@@ -1,8 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const API_URL = import.meta.env.VITE_API_URL || "";
 
 export function apiUrl(path: string){
     if(!path.startsWith("/")) path = `/${path}`;
-    return `${API_URL}${path}`;
+    return API_URL ? `${API_URL}${path}` : path;
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit={}):Promise<T>{
@@ -10,9 +10,9 @@ export async function apiFetch<T>(path: string, init: RequestInit={}):Promise<T>
         ...init,
         credentials: "include", // for cookie auth
         headers: {
-         "Content-Type": "application/json",
-         ...API_URL(init.headers || {})
-        }
+  "Content-Type": "application/json",
+  ...(init.headers || {}),
+}
     });
 
     // if backend returns json {code, message}, keep it readable
@@ -36,4 +36,3 @@ export async function apiFetch<T>(path: string, init: RequestInit={}):Promise<T>
     }
     return data as T
 }
-

@@ -1,6 +1,25 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { apiFetch, apiUrl } from "../lib/api";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Navbar() {
+    const navigate = useNavigate();
+    const {loading, isAuthed, refreshAuth} = useAuth();
+
+    const handleLogin = () =>{
+        window.location.href = apiUrl("/auth/google")
+    }
+
+    const handleLogout = async () =>{
+        try{
+            await apiFetch<{loggedOut: boolean}>("/auth/logout", {method: "POST"})
+        }catch(err){
+            console.log(err)
+        }finally{
+            await refreshAuth();
+            navigate("/public/ekam-xeffect", {replace: true})
+        }
+    }
   return (
     <div className="navbar bg-base-100 border-b">
       <div className="flex-1">
@@ -21,7 +40,12 @@ export default function Navbar() {
           </li>
         </ul>
 
-        <button className="btn btn-primary">Login</button>
+        {loading ? ( <span className="loading loading-spinner loading-sm" />): isAuthed ? ( <button className="btn btn-outline" onClick={handleLogout}>
+            Logout
+          </button>):
+          <button className="btn btn-primary" onClick={handleLogin}>Login</button>
+          }
+        
       </div>
     </div>
   );
