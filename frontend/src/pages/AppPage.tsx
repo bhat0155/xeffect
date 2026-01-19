@@ -1,5 +1,4 @@
 import { Navigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import { useAuth } from "../hooks/useAuth";
 
 export default function AppPage() {
