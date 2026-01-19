@@ -3,6 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import HabitGrid from "../components/HabitGrid";
 import type { HabitState } from "../types/habit";
 import { useState } from "react";
+import CreateHabitModal from "../components/createHabitModal";
 
 export default function AppPage() {
   const { loading, isAuthed, myState, refreshAuth } = useAuth();
@@ -80,12 +81,7 @@ export default function AppPage() {
                     Create Habit
                   </button>
                   {isCreateOpen && (
-                    <div className="alert alert-info mt-4">
-                        <span>Modal will go here next. (Day 3)</span>
-                        <button className="btn btn-sm" onClick={() => setCreateOpenxz(false)}>
-                        Close
-                        </button>
-                    </div>
+                    <CreateHabitModal onClose={()=>setCreateOpen(false)} onCreated={refreshAuth}/>
                   )}
                 </div>
               )}
