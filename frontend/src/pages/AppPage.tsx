@@ -2,9 +2,11 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import HabitGrid from "../components/HabitGrid";
 import type { HabitState } from "../types/habit";
+import { useState } from "react";
 
 export default function AppPage() {
   const { loading, isAuthed, myState, refreshAuth } = useAuth();
+  const [isCreateOpen, setCreateOpen] = useState(false)
 
   // 1) Loading gate
   if (loading) {
@@ -74,9 +76,17 @@ export default function AppPage() {
                   </p>
 
                   {/* Button is wired later to open modal */}
-                  <button className="btn btn-primary mt-3" type="button">
+                  <button className="btn btn-primary mt-3" type="button" onClick={()=> setCreateOpen(true)}>
                     Create Habit
                   </button>
+                  {isCreateOpen && (
+                    <div className="alert alert-info mt-4">
+                        <span>Modal will go here next. (Day 3)</span>
+                        <button className="btn btn-sm" onClick={() => setCreateOpenxz(false)}>
+                        Close
+                        </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
