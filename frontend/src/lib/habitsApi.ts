@@ -14,7 +14,7 @@ export function logout(): Promise<{loggedOut: boolean}>{
 }
 
 export function saveToday(habitId: string): Promise<HabitState>{
-    return apiFetch<HabitState>(`/api/habits/:${habitId}/save`, {method: "POST"})
+    return apiFetch<HabitState>(`/api/habits/${habitId}/save`, {method: "POST"})
 }
 
 export function createHabit(name: string): Promise<HabitState>{
