@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../lib/api";
+import { getMe } from "../lib/habitsApi";
 
 type HabitState = any;
 
@@ -11,7 +12,7 @@ export function useAuth(){
     const refreshAuth = useCallback(async()=>{
         setLoading(true);
         try{
-            const data = await apiFetch<HabitState>("/api/habits/me");
+            const data = await getMe()
             setIsAuthed(true);
             setMyState(data)
         }catch(err: any){

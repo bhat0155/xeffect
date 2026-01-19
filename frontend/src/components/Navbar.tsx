@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { apiFetch, apiUrl } from "../lib/api";
+import {  apiUrl } from "../lib/api";
 import { useAuthContext } from "../contexts/AuthContext";
+import { logout } from "../lib/habitsApi";
 
 export default function Navbar() {
     const navigate = useNavigate();
@@ -12,7 +13,7 @@ export default function Navbar() {
 
     const handleLogout = async () =>{
         try{
-            await apiFetch<{loggedOut: boolean}>("/auth/logout", {method: "POST"})
+            await logout()
         }catch(err){
             console.log(err)
         }finally{
