@@ -1,10 +1,10 @@
-
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import HabitGrid from "../components/HabitGrid";
 import type { HabitState } from "../types/habit";
 import { useMemo, useState } from "react";
 import { saveToday } from "../lib/habitsApi";
+import CreateHabitModal from "../components/createHabitModal";
 
 export default function AppPage() {
   const { loading, isAuthed, myState, refreshAuth } = useAuth();
@@ -15,7 +15,10 @@ export default function AppPage() {
   // Show a user-visible error if save fails (network / 500 / etc.)
   const [saveErr, setSaveErr] = useState<string | null>(null);
 
+  const [openModal, setOpenModal] = useState(false);
+
   // Find the editable day (backend controls this)
+  // (Uses optional chaining so it never crashes while data is loading)
   const editableDay = useMemo(() => {
     const box = myState?.boxes?.find((b) => b.canEdit);
     return box?.day ?? null;
@@ -63,11 +66,6 @@ export default function AppPage() {
     editableDay !== null &&
     !saving;
 
-  /**
-   * We ignore the "day" that HabitGrid passes.
-   * Reason: your backend endpoint saves "today" only.
-   * The backend already told us which day is editable via canEdit.
-   */
   async function handleSaveToday() {
     if (!s.habit) return;
     if (!canSaveToday) return;
@@ -77,9 +75,7 @@ export default function AppPage() {
 
     try {
       await saveToday(s.habit.id);
-
-      // Simplest + most consistent: re-fetch from backend as source of truth
-      await refreshAuth();
+      await refreshAuth(); // backend is source of truth
     } catch (e: any) {
       setSaveErr(e?.message ?? "Failed to save today. Please try again.");
     } finally {
@@ -87,18 +83,25 @@ export default function AppPage() {
     }
   }
 
+  // Close modal after create succeeds + refresh state
+  async function handleCreated() {
+    await refreshAuth();
+    setOpenModal(false);
+  }
+
   return (
     <div className="min-h-screen">
       <div className="p-6 max-w-5xl mx-auto space-y-6">
         <div className="text-3xl font-bold">My Progress (Private)</div>
 
-        {/* Top summary card */}
         <div className="card bg-base-100 border">
           <div className="card-body space-y-4">
             {/* Title */}
-            <div className="text-xl font-semibold">{habitName}</div>
+            <div className="text-xl font-semibold">
+              {s.habit ? habitName : "No habit yet"}
+            </div>
 
-            {/* Metadata row */}
+            {/* Metadata row (safe even if habit is null) */}
             <div className="flex flex-wrap gap-2">
               <div className="badge badge-outline">Today: {s.todayUTC}</div>
               <div className="badge badge-outline">Streak: {s.currentStreak}</div>
@@ -108,49 +111,82 @@ export default function AppPage() {
               </div>
             </div>
 
-            {/* Save status + hint */}
-            {s.habit?.allDone ? (
-              <div className="alert alert-success">
-                <span>Completed 🎉 You finished all 21 days.</span>
-              </div>
-            ) : s.checkedInToday ? (
-              <div className="alert alert-info">
-                <span>Done for today. Come back tomorrow.</span>
-              </div>
-            ) : editableDay ? (
-              <div className="alert alert-info flex justify-between">
-                <span>Click Day {editableDay} to check in for today.</span>
+            {/* If no habit exists, show ONLY the create UX (don’t show “save” alerts) */}
+            {!s.habit ? (
+              <div className="space-y-3">
+                <div className="alert alert-info">
+                  <span>You don’t have a habit yet. Create one to start tracking.</span>
+                </div>
+
                 <button
-                  className="btn btn-sm btn-primary"
-                  onClick={handleSaveToday}
-                  disabled={!canSaveToday}
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => setOpenModal(true)}
                 >
-                  {saving ? "Saving..." : "Save Today"}
+                  Create a habit
                 </button>
+
+                {openModal && (
+                  <CreateHabitModal
+                    onClose={() => setOpenModal(false)}
+                    onCreated={handleCreated}
+                  />
+                )}
+
+                {/* Grid still renders (read-only) so the page looks consistent */}
+                <div className="card bg-base-100 border">
+                  <div className="card-body">
+                    <HabitGrid boxes={s.boxes} readOnly />
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="alert alert-warning">
-                <span>No editable day right now.</span>
-              </div>
-            )}
+              <>
+                {/* Save status + hint (only when habit exists) */}
+                {s.habit.allDone ? (
+                  <div className="alert alert-success">
+                    <span>Completed 🎉 You finished all 21 days.</span>
+                  </div>
+                ) : s.checkedInToday ? (
+                  <div className="alert alert-info">
+                    <span>Done for today. Come back tomorrow.</span>
+                  </div>
+                ) : editableDay ? (
+                  <div className="alert alert-info flex justify-between">
+                    <span>Click Day {editableDay} to check in for today.</span>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={handleSaveToday}
+                      disabled={!canSaveToday}
+                    >
+                      {saving ? "Saving..." : "Save Today"}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="alert alert-warning">
+                    <span>No editable day right now.</span>
+                  </div>
+                )}
 
-            {/* Save error */}
-            {saveErr && (
-              <div className="alert alert-error">
-                <span>{saveErr}</span>
-              </div>
-            )}
+                {/* Save error */}
+                {saveErr && (
+                  <div className="alert alert-error">
+                    <span>{saveErr}</span>
+                  </div>
+                )}
 
-            {/* Grid */}
-            <div className="card bg-base-100 border">
-              <div className="card-body">
-                <HabitGrid
-                  boxes={s.boxes}
-                  readOnly={!canSaveToday} // makes it clickable only when allowed
-                  onClickDay={() => handleSaveToday()}
-                />
-              </div>
-            </div>
+                {/* Grid (clickable only when allowed) */}
+                <div className="card bg-base-100 border">
+                  <div className="card-body">
+                    <HabitGrid
+                      boxes={s.boxes}
+                      readOnly={!canSaveToday}
+                      onClickDay={() => handleSaveToday()}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
