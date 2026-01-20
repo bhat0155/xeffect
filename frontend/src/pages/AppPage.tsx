@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthContext } from "../contexts/AuthContext";
 import HabitGrid from "../components/HabitGrid";
 import type { HabitState } from "../types/habit";
 import { useMemo, useState } from "react";
@@ -7,7 +7,7 @@ import { saveToday } from "../lib/habitsApi";
 import CreateHabitModal from "../components/createHabitModal";
 
 export default function AppPage() {
-  const { loading, isAuthed, myState, refreshAuth } = useAuth();
+  const { loading, isAuthed, myState, refreshAuth, setMyState } = useAuthContext();
 
   // Prevent double-click spam while the request is in-flight
   const [saving, setSaving] = useState(false);
@@ -74,8 +74,8 @@ export default function AppPage() {
     setSaving(true);
 
     try {
-      await saveToday(s.habit.id);
-      await refreshAuth(); // backend is source of truth
+        const nextState = await saveToday(s.habit.id);
+        setMyState(nextState)
     } catch (e: any) {
       setSaveErr(e?.message ?? "Failed to save today. Please try again.");
     } finally {
@@ -148,9 +148,9 @@ export default function AppPage() {
                     <span>Completed 🎉 You finished all 21 days.</span>
                   </div>
                 ) : s.checkedInToday ? (
-                  <div className="alert alert-info">
-                    <span>Done for today. Come back tomorrow.</span>
-                  </div>
+                  <div className="alert alert-success justify-center">
+  <span className="w-full text-center">Done for today. See you tomorrow.</span>
+</div>
                 ) : editableDay ? (
                   <div className="alert alert-info flex justify-between">
                     <span>Click Day {editableDay} to check in for today.</span>
@@ -185,6 +185,17 @@ export default function AppPage() {
                     />
                   </div>
                 </div>
+              {s.ai && (
+  <div className="alert alert-success border border-success/40 justify-center">
+    <div>
+      <div className="font-semibold">Milestone 🎉</div>
+      <div className="opacity-90">
+        {/* Use the right key based on your backend payload */}
+        {s.ai.message}
+      </div>
+    </div>
+  </div>
+)}
               </>
             )}
           </div>

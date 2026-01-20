@@ -33,5 +33,5 @@ export function useAuth(){
         refreshAuth()
     },[refreshAuth])
 
-    return {loading, isAuthed, myState, refreshAuth};
+    return {loading, isAuthed, myState, refreshAuth, setMyState};
 }

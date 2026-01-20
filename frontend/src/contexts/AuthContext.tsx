@@ -8,6 +8,7 @@ type AuthContextValue = {
     isAuthed: boolean,
     myState: HabitState | null,
     refreshAuth: ()=>Promise<void>
+    setMyState: (next: HabitState | null)=> void;
 }
 
 const AuthContext = createContext<AuthContextValue|null>(null);
