@@ -4,21 +4,20 @@ import HabitGrid from "../components/HabitGrid";
 import type { HabitState } from "../types/habit";
 import { useMemo, useState } from "react";
 import { saveToday } from "../lib/habitsApi";
-import CreateHabitModal from "../components/createHabitModal";
+import CreateHabitModal from "../components/CreateHabitModal";
+import RenameHabitModal from "../components/RenameModal";
+import { Pencil } from "lucide-react";
 
 export default function AppPage() {
   const { loading, isAuthed, myState, refreshAuth, setMyState } = useAuthContext();
 
-  // Prevent double-click spam while the request is in-flight
   const [saving, setSaving] = useState(false);
-
-  // Show a user-visible error if save fails (network / 500 / etc.)
   const [saveErr, setSaveErr] = useState<string | null>(null);
 
-  const [openModal, setOpenModal] = useState(false);
+  const [openCreate, setOpenCreate] = useState(false);
+  const [openRename, setOpenRename] = useState(false);
 
   // Find the editable day (backend controls this)
-  // (Uses optional chaining so it never crashes while data is loading)
   const editableDay = useMemo(() => {
     const box = myState?.boxes?.find((b) => b.canEdit);
     return box?.day ?? null;
@@ -38,12 +37,12 @@ export default function AppPage() {
     return <Navigate to="/public/ekam-xeffect" replace />;
   }
 
-  // 3) Data gate (should be rare, but avoids crashes)
+  // 3) Data gate
   if (!myState) {
     return (
       <div className="min-h-screen">
         <div className="p-6 max-w-5xl mx-auto">
-          <div className="alert alert-warning flex justify-between">
+          <div className="alert alert-warning flex items-center justify-between">
             <span>Could not load your state. Try again.</span>
             <button className="btn btn-sm" onClick={refreshAuth}>
               Retry
@@ -74,8 +73,8 @@ export default function AppPage() {
     setSaving(true);
 
     try {
-        const nextState = await saveToday(s.habit.id);
-        setMyState(nextState)
+      const nextState = await saveToday(s.habit.id);
+      setMyState(nextState); // keep AI banner without refresh
     } catch (e: any) {
       setSaveErr(e?.message ?? "Failed to save today. Please try again.");
     } finally {
@@ -83,10 +82,9 @@ export default function AppPage() {
     }
   }
 
-  // Close modal after create succeeds + refresh state
   async function handleCreated() {
     await refreshAuth();
-    setOpenModal(false);
+    setOpenCreate(false);
   }
 
   return (
@@ -96,12 +94,34 @@ export default function AppPage() {
 
         <div className="card bg-base-100 border">
           <div className="card-body space-y-4">
-            {/* Title */}
-            <div className="text-xl font-semibold">
-              {s.habit ? habitName : "No habit yet"}
+            {/* Title row + rename action */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-xl font-semibold">
+                {s.habit ? habitName : "No habit yet"}
+              </div>
+
+              {s.habit && (
+                <button
+                  className="btn btn-sm btn-outline"
+                  type="button"
+                  onClick={() => setOpenRename(true)}
+                >
+                  <Pencil size={16}/>
+                </button>
+              )}
             </div>
 
-            {/* Metadata row (safe even if habit is null) */}
+            {/* Rename modal */}
+            {s.habit && openRename && (
+              <RenameHabitModal
+                habitId={s.habit.id}
+                initialName={s.habit.name}
+                onClose={() => setOpenRename(false)}
+                onRenamed={(nextState) => setMyState(nextState)}
+              />
+            )}
+
+            {/* Metadata row */}
             <div className="flex flex-wrap gap-2">
               <div className="badge badge-outline">Today: {s.todayUTC}</div>
               <div className="badge badge-outline">Streak: {s.currentStreak}</div>
@@ -111,7 +131,7 @@ export default function AppPage() {
               </div>
             </div>
 
-            {/* If no habit exists, show ONLY the create UX (don’t show “save” alerts) */}
+            {/* If no habit exists */}
             {!s.habit ? (
               <div className="space-y-3">
                 <div className="alert alert-info">
@@ -121,19 +141,18 @@ export default function AppPage() {
                 <button
                   className="btn btn-primary"
                   type="button"
-                  onClick={() => setOpenModal(true)}
+                  onClick={() => setOpenCreate(true)}
                 >
                   Create a habit
                 </button>
 
-                {openModal && (
+                {openCreate && (
                   <CreateHabitModal
-                    onClose={() => setOpenModal(false)}
+                    onClose={() => setOpenCreate(false)}
                     onCreated={handleCreated}
                   />
                 )}
 
-                {/* Grid still renders (read-only) so the page looks consistent */}
                 <div className="card bg-base-100 border">
                   <div className="card-body">
                     <HabitGrid boxes={s.boxes} readOnly />
@@ -142,17 +161,21 @@ export default function AppPage() {
               </div>
             ) : (
               <>
-                {/* Save status + hint (only when habit exists) */}
+                {/* Status banners */}
                 {s.habit.allDone ? (
-                  <div className="alert alert-success">
-                    <span>Completed 🎉 You finished all 21 days.</span>
+                  <div className="alert alert-success justify-center text-center">
+                    <span className="w-full text-center">
+                      Completed 🎉 You finished all 21 days.
+                    </span>
                   </div>
                 ) : s.checkedInToday ? (
-                  <div className="alert alert-success justify-center">
-  <span className="w-full text-center">Done for today. See you tomorrow.</span>
-</div>
+                  <div className="alert alert-success justify-center text-center">
+                    <span className="w-full text-center">
+                      Done for today. See you tomorrow.
+                    </span>
+                  </div>
                 ) : editableDay ? (
-                  <div className="alert alert-info flex justify-between">
+                  <div className="alert alert-info flex items-center justify-between">
                     <span>Click Day {editableDay} to check in for today.</span>
                     <button
                       className="btn btn-sm btn-primary"
@@ -175,7 +198,7 @@ export default function AppPage() {
                   </div>
                 )}
 
-                {/* Grid (clickable only when allowed) */}
+                {/* Grid */}
                 <div className="card bg-base-100 border">
                   <div className="card-body">
                     <HabitGrid
@@ -185,17 +208,16 @@ export default function AppPage() {
                     />
                   </div>
                 </div>
-              {s.ai && (
-  <div className="alert alert-success border border-success/40 justify-center">
-    <div>
-      <div className="font-semibold">Milestone 🎉</div>
-      <div className="opacity-90">
-        {/* Use the right key based on your backend payload */}
-        {s.ai.message}
-      </div>
-    </div>
-  </div>
-)}
+
+                {/* Milestone banner */}
+                {s.ai && (
+                  <div className="alert alert-success border border-success/40">
+                    <div>
+                      <div className="font-semibold">Milestone 🎉</div>
+                      <div className="opacity-90">{s.ai.message}</div>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
