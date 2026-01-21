@@ -10,6 +10,7 @@ import {
   ExternalLink,
   BookOpen,
   ShieldCheck,
+  Brain, TrendingUp, MessageSquareText
 } from "lucide-react";
 
 function StatCard({
@@ -144,6 +145,38 @@ export default function About() {
           />
         </div>
       </section>
+      {/* AI */}
+      {/* AI feedback */}
+<section className="mt-10">
+  <h2 className="text-xl font-bold tracking-tight">AI feedback</h2>
+  <p className="mt-2 text-sm text-base-content/70">
+    xeffect gives you AI-powered feedback on your habit progress—so you don’t
+    just track consistency, you understand it.
+  </p>
+
+  <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <StatCard
+      icon={<Brain className="h-5 w-5" />}
+      title="Personalized insights"
+      desc="Actionable feedback based on your streak, missed days, and pace."
+    />
+    <StatCard
+      icon={<TrendingUp className="h-5 w-5" />}
+      title="Progress patterns"
+      desc="Highlights when you’re strongest (and where you usually drop off)."
+    />
+    <StatCard
+      icon={<MessageSquareText className="h-5 w-5" />}
+      title="Next-step suggestions"
+      desc="Simple suggestions to stay consistent for the next few days."
+    />
+  </div>
+
+  <div className="mt-4 rounded-2xl border border-base-300 bg-base-100 p-4 text-sm text-base-content/70">
+    Tip: Check the feedback after each check-in or at the end of the week to
+    spot patterns early.
+  </div>
+</section>
 
       {/* Rules */}
       <section className="mt-10">
