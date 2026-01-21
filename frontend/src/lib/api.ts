@@ -6,14 +6,27 @@ export function apiUrl(path: string){
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit={}):Promise<T>{
-    const res = await fetch(apiUrl(path),{
-        ...init,
-        credentials: "include", // for cookie auth
-        headers: {
-  "Content-Type": "application/json",
-  ...(init.headers || {}),
-}
-    });
+    let res: Response;
+    try {
+        res = await fetch(apiUrl(path),{
+            ...init,
+            credentials: "include", // for cookie auth
+            headers: {
+      "Content-Type": "application/json",
+      ...(init.headers || {}),
+    }
+        });
+    } catch (err: any) {
+        const message =
+            err?.message === "Failed to fetch"
+                ? "Failed to fetch, please try after some time"
+                : "Network error, please try after some time";
+        throw {
+            status: 0,
+            code: "NETWORK_ERROR",
+            message,
+        };
+    }
 
     // if backend returns json {code, message}, keep it readable
     const text = await res.text();

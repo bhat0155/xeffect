@@ -95,14 +95,14 @@ export default function AppPage() {
         <div className="card bg-base-100 border">
           <div className="card-body space-y-4">
             {/* Title row + rename action */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3">
               <div className="text-lg sm:text-xl font-semibold">
                 {s.habit ? habitName : "No habit yet"}
               </div>
 
               {s.habit && (
                 <button
-                  className="btn btn-sm btn-outline self-start sm:self-auto"
+                  className="btn btn-sm btn-outline"
                   type="button"
                   onClick={() => setOpenRename(true)}
                 >
@@ -134,17 +134,18 @@ export default function AppPage() {
             {/* If no habit exists */}
             {!s.habit ? (
               <div className="space-y-3">
-                <div className="alert alert-info">
-                  <span>You don’t have a habit yet. Create one to start tracking.</span>
+                <div className="alert alert-info flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <span>
+                    You don’t have a habit yet. Create one to start tracking.
+                  </span>
+                  <button
+                    className="btn btn-primary w-full sm:w-auto"
+                    type="button"
+                    onClick={() => setOpenCreate(true)}
+                  >
+                    Create a habit
+                  </button>
                 </div>
-
-                <button
-                  className="btn btn-primary w-full sm:w-auto"
-                  type="button"
-                  onClick={() => setOpenCreate(true)}
-                >
-                  Create a habit
-                </button>
 
                 {openCreate && (
                   <CreateHabitModal
