@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import HabitGrid from "../components/HabitGrid";
+import heroImage from "../assets/Quote_2.png";
 import { getPublic } from "../lib/habitsApi";
 import type { HabitState, ApiError } from "../types/habit";
 
@@ -65,20 +66,21 @@ export default function Public() {
 
   return (
     <div className="min-h-screen">
-      {/* HERO: rectangular placeholder (you can replace with image later) */}
+      {/* HERO */}
       <section className="bg-base-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-          <div className="w-full min-h-[35vh] sm:min-h-[50vh] bg-base-100 shadow overflow-hidden flex items-center justify-center">
-            {/* Placeholder area for a quote-image/banner */}
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="opacity-60 text-sm">
-                {/* Placeholder only — replace with image later */}
-                Hero banner placeholder
-              </div>
-            </div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2 sm:py-8">
+          <div className="w-full min-h-[24vh] sm:min-h-[50vh] bg-base-100 shadow overflow-hidden rounded-xl">
+            <img
+              src={heroImage}
+              alt="James Clear Quote"
+              className="w-full h-full object-contain block transition duration-300"
+              loading="lazy"
+            />
           </div>
         </div>
       </section>
+
+
 
       {/* SECTION: Ekam's XEffect */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
