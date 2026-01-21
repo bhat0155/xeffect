@@ -22,16 +22,16 @@ export default function Navbar() {
         }
     }
   return (
-    <div className="navbar bg-base-100 border-b">
+    <div className="navbar bg-base-100 border-b px-2 sm:px-4">
       <div className="flex-1">
-        <Link to="/" className="btn btn-ghost text-xl">
+        <Link to="/" className="btn btn-ghost text-lg sm:text-xl">
           XEffect
         </Link>
       </div>
 
-      <div className="flex-none gap-2">
-        <ul className="menu menu-horizontal px-1">
-          <li>
+      <div className="flex-none flex items-center gap-2">
+        <ul className="menu menu-horizontal px-1 flex items-center">
+          <li className="hidden sm:block">
             <NavLink to="/" end>
               Home
             </NavLink>
@@ -41,10 +41,10 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {loading ? ( <span className="loading loading-spinner loading-sm" />): isAuthed ? ( <button className="btn btn-outline" onClick={handleLogout}>
+        {loading ? ( <span className="loading loading-spinner loading-sm" />): isAuthed ? ( <button className="btn btn-outline btn-sm sm:btn-md" onClick={handleLogout}>
             Logout
           </button>):
-          <button className="btn btn-primary" onClick={handleLogin}>Login</button>
+          <button className="btn btn-primary btn-sm sm:btn-md" onClick={handleLogin}>Login</button>
           }
         
       </div>

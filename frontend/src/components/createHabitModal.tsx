@@ -42,7 +42,7 @@ export default function CreateHabitModal({ onClose, onCreated }: Props) {
 
   return (
     <div className="modal modal-open" role="dialog" aria-modal="true">
-      <div className="modal-box">
+      <div className="modal-box w-11/12 max-w-md">
         <h3 className="font-bold text-lg">Create your habit</h3>
 
         <p className="opacity-70 mt-2">
@@ -74,13 +74,13 @@ export default function CreateHabitModal({ onClose, onCreated }: Props) {
           </div>
         )}
 
-        <div className="modal-action">
-          <button className="btn" onClick={onClose} disabled={submitting}>
+        <div className="modal-action flex flex-col sm:flex-row gap-2">
+          <button className="btn w-full sm:w-auto" onClick={onClose} disabled={submitting}>
             Cancel
           </button>
 
           <button
-            className="btn btn-primary"
+            className="btn btn-primary w-full sm:w-auto"
             onClick={handleCreate}
             disabled={submitting}
           >

@@ -89,20 +89,20 @@ export default function AppPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="p-6 max-w-5xl mx-auto space-y-6">
-        <div className="text-3xl font-bold">My Progress (Private)</div>
+      <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
+        <div className="text-2xl sm:text-3xl font-bold">My Progress (Private)</div>
 
         <div className="card bg-base-100 border">
           <div className="card-body space-y-4">
             {/* Title row + rename action */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-xl font-semibold">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="text-lg sm:text-xl font-semibold">
                 {s.habit ? habitName : "No habit yet"}
               </div>
 
               {s.habit && (
                 <button
-                  className="btn btn-sm btn-outline"
+                  className="btn btn-sm btn-outline self-start sm:self-auto"
                   type="button"
                   onClick={() => setOpenRename(true)}
                 >
@@ -122,7 +122,7 @@ export default function AppPage() {
             )}
 
             {/* Metadata row */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
               <div className="badge badge-outline">Today: {s.todayUTC}</div>
               <div className="badge badge-outline">Streak: {s.currentStreak}</div>
               <div className="badge badge-outline">Best: {bestStreak}</div>
@@ -139,7 +139,7 @@ export default function AppPage() {
                 </div>
 
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary w-full sm:w-auto"
                   type="button"
                   onClick={() => setOpenCreate(true)}
                 >
@@ -175,10 +175,10 @@ export default function AppPage() {
                     </span>
                   </div>
                 ) : editableDay ? (
-                  <div className="alert alert-info flex items-center justify-between">
+                  <div className="alert alert-info flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <span>Click Day {editableDay} to check in for today.</span>
                     <button
-                      className="btn btn-sm btn-primary"
+                      className="btn btn-sm btn-primary w-full sm:w-auto"
                       onClick={handleSaveToday}
                       disabled={!canSaveToday}
                     >

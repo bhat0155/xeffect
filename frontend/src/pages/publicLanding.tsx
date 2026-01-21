@@ -67,8 +67,8 @@ export default function Public() {
     <div className="min-h-screen">
       {/* HERO: rectangular placeholder (you can replace with image later) */}
       <section className="bg-base-200">
-        <div className="max-w-5xl mx-auto px-4 py-10">
-          <div className="w-full min-h-[50vh] bg-base-100 shadow overflow-hidden flex items-center justify-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <div className="w-full min-h-[35vh] sm:min-h-[50vh] bg-base-100 shadow overflow-hidden flex items-center justify-center">
             {/* Placeholder area for a quote-image/banner */}
             <div className="w-full h-full flex items-center justify-center">
               <div className="opacity-60 text-sm">
@@ -81,10 +81,10 @@ export default function Public() {
       </section>
 
       {/* SECTION: Ekam's XEffect */}
-      <section className="max-w-5xl mx-auto px-4 py-10">
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold">Ekam&apos;s XEffect</h2>
-          <p className="opacity-70 mt-1">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+        <div className="mb-6 text-center sm:text-left">
+          <h2 className="text-2xl sm:text-3xl font-bold">Ekam&apos;s XEffect</h2>
+          <p className="opacity-70 mt-1 text-sm sm:text-base">
             Daily consistency snapshot. Read-only view for guests.
           </p>
         </div>
@@ -106,20 +106,20 @@ export default function Public() {
         <div className="card bg-base-100 shadow">
           <div className="card-body">
             {/* Meta row */}
-            <div className="flex flex-wrap gap-3 items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center sm:justify-between">
               <div className="flex flex-wrap gap-2 items-center">
                 {/* Habit name: more distinct */}
-                <span className="px-4 py-2 rounded-full font-bold border-2 border-primary ring-2 ring-primary/30">
+                <span className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold border-2 border-primary ring-2 ring-primary/30 text-sm sm:text-base">
                   {habitName}
                 </span>
 
-                <span className="badge badge-lg badge-outline">
+                <span className="badge badge-outline text-xs sm:text-sm">
                   Today: {s.todayUTC}
                 </span>
-                <span className="badge badge-lg badge-outline">
+                <span className="badge badge-outline text-xs sm:text-sm">
                   Streak: {s.currentStreak}
                 </span>
-                <span className="badge badge-lg badge-outline">
+                <span className="badge badge-outline text-xs sm:text-sm">
                   Best: {bestStreak}
                 </span>
               </div>
@@ -138,15 +138,15 @@ export default function Public() {
 
       {/* CTA */}
       <section className="bg-base-200">
-        <div className="max-w-5xl mx-auto px-4 py-12">
-<div className="card bg-base-100 shadow border border-black dark:border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+          <div className="card bg-base-100 shadow border border-black dark:border-gray-100">
             <div className="card-body items-center text-center">
-              <h3 className="text-2xl font-bold">Make your own XEffect</h3>
-              <p className="opacity-70 max-w-2xl">
+              <h3 className="text-xl sm:text-2xl font-bold">Make your own XEffect</h3>
+              <p className="opacity-70 max-w-2xl text-sm sm:text-base">
                 Track a 21-day habit, build consistency, and share a public progress link.
               </p>
 
-              <div className="mt-5 flex gap-3">
+              <div className="mt-5 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <Link to="/login" className="btn btn-primary">
                   Create your own
                 </Link>

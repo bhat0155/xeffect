@@ -9,7 +9,7 @@ type Props = {
 
 export default function HabitGrid({ boxes, readOnly = true, onClickDay }: Props) {
   return (
-    <div className="grid grid-cols-7 gap-2">
+    <div className="grid grid-cols-3 sm:grid-cols-7 gap-1 sm:gap-2">
       {boxes.map((b) => {
         const isDone = b.status;
         const isClickable = !readOnly && b.canEdit && !!onClickDay;
@@ -24,7 +24,7 @@ export default function HabitGrid({ boxes, readOnly = true, onClickDay }: Props)
           : "border-2 border-black dark:border-white";
 
         const className = [
-          "aspect-square rounded-xl flex items-center justify-center text-sm font-semibold select-none transition",
+          "aspect-square rounded-lg sm:rounded-xl flex items-center justify-center text-xs sm:text-sm font-semibold select-none transition",
           borderClass,
           isDone ? "bg-success text-success-content" : "bg-base-100",
           b.canEdit && !readOnly ? "ring-2 ring-primary" : "",

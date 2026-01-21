@@ -49,7 +49,7 @@ export default function RenameHabitModal({
 
   return (
     <div className="modal modal-open">
-      <div className="modal-box border">
+      <div className="modal-box border w-11/12 max-w-md">
         <h3 className="font-bold text-lg">Rename Habit</h3>
 
         <div className="mt-4 space-y-2">
@@ -68,12 +68,12 @@ export default function RenameHabitModal({
           )}
         </div>
 
-        <div className="modal-action">
-          <button className="btn" type="button" onClick={onClose} disabled={submitting}>
+        <div className="modal-action flex flex-col sm:flex-row gap-2">
+          <button className="btn w-full sm:w-auto" type="button" onClick={onClose} disabled={submitting}>
             Cancel
           </button>
           <button
-            className="btn btn-primary"
+            className="btn btn-primary w-full sm:w-auto"
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
