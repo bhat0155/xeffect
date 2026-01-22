@@ -5,6 +5,7 @@ import HabitGrid from "../components/HabitGrid";
 import heroImage from "../assets/Quote_2.png";
 import { getPublic } from "../lib/habitsApi";
 import type { HabitState, ApiError } from "../types/habit";
+import { apiUrl } from "../lib/api";
 
 const SLUG = "ekam-xeffect";
 
@@ -149,9 +150,7 @@ export default function Public() {
               </p>
 
               <div className="mt-5 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <Link to="/login" className="btn btn-primary">
-                  Create your own
-                </Link>
+               <button className="btn btn-primary" onClick={()=>{window.location.href = apiUrl("/auth/google")}}>Create your own</button>
                 <Link to="/about" className="btn btn-ghost">
                   Learn more
                 </Link>
