@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nodemon --watch src --ext ts --exec \"node -r ts-node/register\" src/server.ts",
     "build": "prisma generate && tsc",
+    "postbuild": "cp -R src/generated dist/generated",
     "start": "node dist/server.js",
     "test": "dotenv -e .env.test -- jest",
     "test:watch": "dotenv -e .env.test -- jest --watch",
