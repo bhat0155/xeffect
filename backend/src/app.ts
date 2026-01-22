@@ -16,6 +16,9 @@ dotenv.config();
 
 export const app = express();
 
+// trust render proxy
+app.set("trust proxy", 1);
+
 // middleware
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "http://localhost:3000";
 app.use(helmet());
