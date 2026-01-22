@@ -28,9 +28,10 @@ router.get("/google/callback", passport.authenticate("google", {failureRedirect:
         path: "/"
     });
 
-    // redirect to frontend
+    // redirect to frontend app
     const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:3000";
-    res.redirect(frontendOrigin)
+    const redirectTo = process.env.FRONTEND_APP_REDIRECT || `${frontendOrigin}/app`;
+    res.redirect(redirectTo)
 })
 
 // logout, clears the auth cookie so subsequent requests give 401
