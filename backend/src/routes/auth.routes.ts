@@ -17,11 +17,13 @@ router.get("/google/callback", passport.authenticate("google", {failureRedirect:
 
     const token = jwt.sign({userId: user.userId}, jwtSecret, {expiresIn: "7d"});
 
+    const isProd = process.env.NODE_ENV === "production";
+
     // send the code as cookie
     res.cookie("xeffect_token", token, {
         httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        sameSite: isProd ? "none" : "lax",
+        secure: isProd,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         path: "/"
     });
@@ -33,10 +35,11 @@ router.get("/google/callback", passport.authenticate("google", {failureRedirect:
 
 // logout, clears the auth cookie so subsequent requests give 401
 router.post("/logout", (req, res)=>{
+    const isProd = process.env.NODE_ENV === "production";
     res.clearCookie("xeffect_token", {
         httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV == "production",
+        sameSite: isProd ? "none" : "lax",
+        secure: isProd,
         path: "/"
     })
 
