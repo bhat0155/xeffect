@@ -19,7 +19,7 @@ export default function AppPage() {
 
   // Find the editable day (backend controls this)
   const editableDay = useMemo(() => {
-    const box = myState?.boxes?.find((b) => b.canEdit);
+    const box = myState?.boxes?.find((b:any) => b.canEdit);
     return box?.day ?? null;
   }, [myState?.boxes]);
 
@@ -91,6 +91,8 @@ export default function AppPage() {
     <div className="min-h-screen">
       <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
         <div className="text-2xl sm:text-3xl font-bold">My Progress (Private)</div>
+
+        
 
         <div className="card bg-base-100 border">
           <div className="card-body space-y-4">

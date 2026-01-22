@@ -7,6 +7,7 @@ import { getPublic } from "../lib/habitsApi";
 import type { HabitState, ApiError } from "../types/habit";
 import { apiUrl } from "../lib/api";
 
+
 const SLUG = "ekam-xeffect";
 
 function makeEmptyState(): HabitState {

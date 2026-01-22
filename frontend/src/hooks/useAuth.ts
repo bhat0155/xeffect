@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiFetch } from "../lib/api";
 import { getMe } from "../lib/habitsApi";
 
 type HabitState = any;
