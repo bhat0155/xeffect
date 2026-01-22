@@ -11,6 +11,7 @@ const router = Router();
 // Protected route to get habit state for authenticated user
 router.get("/me", requireAuth, async (req,res, next)=>{
    try{
+     res.set("Cache-Control", "no-store");
      const userId = req.userId as string;
     const state = await getHabitStateForUser(userId);
     res.status(200).json(state)
