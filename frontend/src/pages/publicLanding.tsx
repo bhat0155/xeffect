@@ -1,11 +1,12 @@
 // src/pages/Public.tsx
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import HabitGrid from "../components/HabitGrid";
 import heroImage from "../assets/Quote_2.png";
 import { getPublic } from "../lib/habitsApi";
 import type { HabitState, ApiError } from "../types/habit";
 import { apiUrl } from "../lib/api";
+import { useAuthContext } from "../contexts/AuthContext";
 
 
 const SLUG = "ekam-xeffect";
@@ -25,6 +26,7 @@ function makeEmptyState(): HabitState {
 }
 
 export default function Public() {
+  const { isAuthed, loading: authLoading } = useAuthContext();
   const [loading, setLoading] = useState(true);
   const [state, setState] = useState<HabitState | null>(null);
   const [err, setErr] = useState<ApiError | null>(null);
@@ -54,12 +56,16 @@ export default function Public() {
     };
   }, []);
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <span className="loading loading-spinner loading-lg" />
       </div>
     );
+  }
+
+  if (isAuthed) {
+    return <Navigate to="/app" replace />;
   }
 
   const s = state ?? makeEmptyState();
