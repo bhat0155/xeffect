@@ -1,152 +1,142 @@
-# Deployment Guide (XEffect)
+# Deployment Guide (Manual AWS Path)
 
-This guide describes a practical, **working** deployment for this repo:
-- Frontend: **Vercel**
-- Backend: **Render**
-- Database: **Supabase Postgres**
-
-It also includes a **future AWS roadmap** (Docker + CI/CD + App Runner) but keeps the immediate steps simple and reliable.
 
 ---
 
-## 0) Preconditions
-Make sure these are true before deploying:
-- Secrets are **not committed** (`.env` is gitignored).
-- You can run backend + frontend locally.
-- Supabase project is created and reachable.
+## 0) Prerequisites (one‑time setup)
+1) Install tools:
+   - Docker
+   - AWS CLI
+   - Terraform
+2) Configure AWS CLI:
+```
+aws configure
+```
+3) Create an AWS account with billing enabled.
 
 ---
 
-## 1) Database (Supabase)
-1) Create a Supabase project.
-2) Go to **Settings → Database** and copy the connection string.
-3) Run migrations locally against Supabase:
+## 1) Containerize the backend
+1) Create `backend/Dockerfile` (multi‑stage build).
+2) Create `backend/.dockerignore`.
+3) (Optional) Add `docker-compose.yml` for local testing.
+
+**Test locally**
 ```
-cd backend
-export DATABASE_URL="postgresql://..."
-npx prisma migrate deploy
+docker build -t xeffect-backend ./backend
+docker run -p 4000:4000 --env-file backend/.env xeffect-backend
 ```
-4) Confirm tables exist in Supabase.
 
 **DoD**
-- `User`, `Habit`, `HabitCheckin` tables exist in Supabase.
+- Container boots and `/health` returns 200.
 
 ---
 
-## 2) Backend on Render
-1) Push the repo to GitHub.
-2) Render → **New → Web Service**.
-3) Select the repo.
-4) Set:
-   - **Root directory:** `backend`
-   - **Build command:** `npm ci --include=dev && npm run build`
-   - **Start command:** `npm run start`
-5) Add env vars in Render:
+## 2) Create AWS ECR (container registry)
+1) Create ECR repo:
 ```
-DATABASE_URL=postgresql://...
-JWT_SECRET=...
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-FRONTEND_ORIGIN=https://<your-vercel-domain>
-FRONTEND_APP_REDIRECT=https://<your-vercel-domain>/app
-GOOGLE_CALLBACK_URL=https://<your-vercel-domain>/auth/google/callback
-PUBLIC_HABIT_EMAIL=your@email.com   # optional
-OPEN_AI_API_KEY=...                 # optional
-OPEN_AI_MODEL=gpt-4.1-mini          # optional
-NODE_ENV=production
+aws ecr create-repository --repository-name xeffect-backend
 ```
-6) Deploy.
-
-**DoD**
-- `https://<render-domain>/health` returns 200.
-
----
-
-## 3) Google OAuth Configuration
-Google Cloud Console → OAuth 2.0 Client:
-
-**Authorized JavaScript origins**
-- `https://<your-vercel-domain>`
-
-**Authorized redirect URIs**
-- `https://<your-vercel-domain>/auth/google/callback`
-
-**DoD**
-- Login redirects back to Vercel and sets a cookie.
-
----
-
-## 4) Frontend on Vercel
-1) Vercel → **New Project** → Import repo.
-2) Set **Root Directory** = `frontend`.
-3) Build:
-   - **Build command:** `npm run build`
-   - **Output:** `dist`
-4) Environment variables:
-   - **Unset** `VITE_API_URL` (so frontend uses relative `/api`)
-5) Make sure `vercel.json` is in repo root **and** `frontend/vercel.json`
-   (in case Vercel root changes).
-6) Deploy.
-
-**DoD**
-- `https://<vercel-domain>/public/ekam-xeffect` loads.
-- `https://<vercel-domain>/auth/google` redirects to Google.
-
----
-
-## 5) Vercel Rewrite (Required)
-Your Vercel config should proxy API/auth to Render:
-```json
-{
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://<render-domain>/api/$1" },
-    { "source": "/auth/(.*)", "destination": "https://<render-domain>/auth/$1" },
-    { "source": "/docs/(.*)", "destination": "https://<render-domain>/docs/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
+2) Authenticate Docker to ECR:
+```
+aws ecr get-login-password --region <region> \
+| docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
+```
+3) Tag + push image:
+```
+docker tag xeffect-backend:latest <account-id>.dkr.ecr.<region>.amazonaws.com/xeffect-backend:latest
+docker push <account-id>.dkr.ecr.<region>.amazonaws.com/xeffect-backend:latest
 ```
 
-**Why:** This makes cookies same‑origin (works on Safari, Incognito, etc).
+**DoD**
+- Image exists in ECR.
 
 ---
 
-## 6) Final Smoke Test
-1) Visit `/public/ekam-xeffect` (no login).
-2) Click Login → Google OAuth.
-3) Confirm redirect to `/app`.
-4) `GET /api/habits/me` returns 200.
-5) Create habit → save today → refresh.
+## 3) Deploy backend with AWS App Runner
+1) App Runner → Create Service:
+   - Source: ECR image
+   - Port: `4000`
+2) Configure environment variables:
+   - `DATABASE_URL`
+   - `JWT_SECRET`
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+   - `FRONTEND_ORIGIN`
+   - `FRONTEND_APP_REDIRECT`
+   - `GOOGLE_CALLBACK_URL`
+3) Deploy.
+
+**DoD**
+- App Runner URL responds to `/health`.
 
 ---
 
-# AWS Roadmap (Optional Next Phase)
+## 4) Secrets Management (AWS)
+Use **SSM Parameter Store** or **Secrets Manager**:
+1) Create parameters for each secret.
+2) Grant App Runner IAM role permission to read them.
+3) Inject secrets via App Runner config.
 
-This is optional and can be done after the above is stable.
+**DoD**
+- No secrets are stored in code or committed files.
 
-## Phase A — Dockerize Backend
-- Add `backend/Dockerfile`
-- Add `backend/.dockerignore`
-- Add `docker-compose.yml` (backend + postgres)
+---
 
-## Phase B — CI (GitHub Actions)
-- Run typecheck + tests
-- Build Docker image
+## 5) Custom backend domain
+1) Route53 → Create hosted zone for your domain.
+2) Create a record for `api.yourdomain.com` pointing to App Runner.
+3) Request HTTPS cert (App Runner supports managed certs).
 
-## Phase C — CD (ECR + App Runner)
-- Push Docker image to ECR
-- App Runner deploys on new image
+**DoD**
+- `https://api.yourdomain.com/health` returns 200.
 
-## Phase D — IaC (Terraform)
-- ECR repo
+---
+
+## 6) CI/CD (GitHub Actions)
+**Goal:** build + push image to ECR on each main merge.
+
+Pipeline outline:
+1) Install deps
+2) Run tests (optional)
+3) Build Docker image
+4) Push to ECR
+5) App Runner auto‑deploys on new image
+
+**DoD**
+- Push to `main` produces a new ECR image.
+
+---
+
+## 7) Infrastructure as Code (Terraform)
+Create an `infra/terraform` directory and manage:
+- ECR repository
 - App Runner service
-- IAM roles
-- Route53 `api.<domain>`
+- IAM roles/policies
+- Route53 records
+
+**DoD**
+- `terraform apply` reproduces the full backend stack.
 
 ---
 
-## Common Issues
-- **401 after login:** cookie not sent → ensure Vercel proxy + `GOOGLE_CALLBACK_URL` points to Vercel.
-- **404 on refresh:** Vercel SPA rewrites missing.
-- **Build fails on Render:** use `npm ci --include=dev`.
+## 8) Observability
+1) Enable CloudWatch logs (App Runner defaults).
+2) Add a basic alarm for 5xx spikes or health check failures.
 
+**DoD**
+- Logs visible in CloudWatch.
+
+---
+
+## 9) Production hardening checklist
+- Rate limit `/save`
+- Restrict CORS to your frontend domain
+- Rotate secrets regularly
+- Backups for database
+
+---
+
+## Summary
+This flow is what hiring teams expect for “cloud engineer” basics:
+containers → ECR → App Runner → IaC → CI/CD → secrets → logs.
