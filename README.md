@@ -68,5 +68,9 @@ Frontend (Vercel or `frontend/.env.local`):
   - `FRONTEND_ORIGIN=https://your-domain`
   - `FRONTEND_APP_REDIRECT=https://your-domain/app`
 
+## API Docs
+- Swagger UI (local): `http://localhost:4000/docs`
+- Swagger UI (prod): `https://xeffect.onrender.com/docs`
+
 ## License
 MIT
