@@ -39,6 +39,33 @@ npm install
 npm run dev
 ```
 
+## Run With Docker
+This repo includes a multi-service Docker setup for:
+- `db` (Postgres)
+- `backend` (Express API + Prisma migrations on startup)
+- `frontend` (Vite app)
+
+From the project root:
+```
+docker compose up --build
+```
+
+If you want a clean restart (remove containers + volumes):
+```
+docker compose down -v
+docker compose up --build
+```
+
+App URLs:
+- Frontend: `http://localhost:5173`
+- Backend health: `http://localhost:4000/health`
+- API docs: `http://localhost:4000/docs`
+
+Notes:
+- Backend reads secrets from `backend/.env` via Compose `env_file`.
+- Compose overrides `DATABASE_URL` to the internal Docker Postgres service (`db`).
+- Seed data is not required; run it only if you explicitly want sample data.
+
 ## Environment Variables
 Backend (`backend/.env`):
 - `DATABASE_URL`

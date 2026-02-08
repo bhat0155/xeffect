@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: xeffect
+      POSTGRES_PASSWORD: xeffect
+      POSTGRES_DB: xeffect
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xeffect -d xeffect"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      args:
+        DATABASE_URL: postgres://xeffect:xeffect@db:5432/xeffect
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgres://xeffect:xeffect@db:5432/xeffect
+      NODE_ENV: production
+      PORT: "4000"
+      FRONTEND_ORIGIN: http://localhost:5173
+      FRONTEND_APP_REDIRECT: http://localhost:5173/app
+      GOOGLE_CALLBACK_URL: http://localhost:4000/auth/google/callback
+    command: sh -c "npx prisma migrate deploy && npm start"
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_URL: http://localhost:4000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
