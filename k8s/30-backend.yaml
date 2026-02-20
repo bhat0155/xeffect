@@ -1,0 +1,52 @@
+# backend deployment runs express api
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: xeffect
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend #deployment manages pods that match this label
+  template:
+    metadata:
+      labels:
+        app: backend # service will use this to route traffic to the correct pods
+    spec:
+      containers:
+      - name: backend
+        image: xeffect-backend:dev
+        imagePullPolicy: IfNotPresent 
+        ports:
+        - containerPort: 4000
+        envFrom:
+        - configMapRef:
+            name: xeffect-config
+        - secretRef:
+            name: xeffect-secrets
+
+        # run prisma migration, if succeeds, start the server
+        command: ["sh", "-c", "npx prisma migrate deploy && npm run start"]
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-svc
+  namespace: xeffect
+spec:
+  selector:
+    app: backend #Route traffic to pods with this label
+  ports:
+  - port: 4000 #Clients call backend-svc: 4000
+    targetPort: 4000 #Forward to container port 4000
+  type: ClusterIP #Default, only accessible within cluster  

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: xeffect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend # deployment manages app with label app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend # service will select these pods
+    spec:
+      containers:
+      - name: frontend
+        image: xeffect-frontend:dev
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5173 #vite port inside container
+        env:
+        - name: VITE_API_URL
+          value: ""
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+  namespace: xeffect
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 5173
+    targetPort: 5173
+  type: ClusterIP

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xeffect-config
+  namespace: xeffect
+data: 
+  PORT: "4000"
+  FRONTEND_ORIGIN: "http://localhost:18080"
+  FRONTEND_APP_REDIRECT: "http://localhost:18080/app"
+  GOOGLE_CALLBACK_URL: "http://localhost:18080/auth/google/callback"
+  OPEN_AI_MODEL: "gpt-4.1-mini"
