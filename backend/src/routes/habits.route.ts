@@ -125,9 +125,18 @@ router.post("/:id/save", requireAuth, async (req, res, next) => {
       return res.status(404).json({ code: "NOT_FOUND", message: "Habit not found" });
     }
     if (habit.allDone) {
-      return res
-        .status(400)
-        .json({ code: "HABIT_COMPLETED", message: "Habit already completed" });
+      // delete all checkins if habit is already completed, starting fresh
+        await prisma.habitCheckin.deleteMany({
+          where: {habitId}
+        });
+        // update alldone and hasHabit
+        await prisma.habit.update({
+          where: {id: habitId},
+          data: { allDone: false, lastMilestoneReached: 0 }
+        })
+        const freshState = await getHabitStateForUser(userId);
+        return res.status(200).json(freshState);
+
     }
 
     // insert today's checkin
@@ -172,14 +181,19 @@ router.post("/:id/save", requireAuth, async (req, res, next) => {
       state.habit.bestStreak = nextBest;
     }
 
-    // update allDone if needed
-    if (state.habit && state.currentStreak >= 21 && !state.habit.allDone) {
-      await prisma.habit.update({
-        where: { id: habitId },
-        data: { allDone: true },
-      });
-      state.habit.allDone = true;
+    // reset after completing 21 days
+    if (state.habit && state.currentStreak >= 21) {
+     await prisma.habitCheckin.deleteMany({
+      where: {habitId}
+     })
+     await prisma.habit.update({
+      where: {id: habitId},
+      data: { lastMilestoneReached: 0, allDone: false }
+     })
+     const freshState = await getHabitStateForUser(userId);
+     return res.status(200).json(freshState);
     }
+     
     res.status(201).json(state);
   } catch (err) {
     next(err);
