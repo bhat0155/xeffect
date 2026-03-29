@@ -14,6 +14,18 @@ router.get("/me", requireAuth, async (req,res, next)=>{
      res.set("Cache-Control", "no-store");
      const userId = req.userId as string;
     const state = await getHabitStateForUser(userId);
+
+    // auto-reset if 21-day challenge already completed but reset never fired (e.g. deployed after final check-in)
+    if (state.habit && state.currentStreak >= 21) {
+      await prisma.habitCheckin.deleteMany({ where: { habitId: state.habit.id } });
+      await prisma.habit.update({
+        where: { id: state.habit.id },
+        data: { lastMilestoneReached: 0, allDone: false }
+      });
+      const freshState = await getHabitStateForUser(userId);
+      return res.status(200).json(freshState);
+    }
+
     res.status(200).json(state)
    }catch(err){
     next(err)
