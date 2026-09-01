@@ -16,6 +16,7 @@ A minimal 21-day habit tracker with a public read-only progress view and a priva
 - [Running with Kubernetes](#running-with-kubernetes)
 - [Deployment Notes](#deployment-notes)
 - [License](#license)
+- [Contact](#contact)
 
 ## Features
 - Public landing page that shows a read-only 21-day habit grid.
@@ -61,12 +62,10 @@ cd backend
 npm install
 ```
 
-Copy the example environment file and fill in the values described in [Configuration](#configuration):
+Copy the example environment file and fill in the values described in [Configuration](#configuration), including `DATABASE_URL` for your PostgreSQL instance:
 ```bash
 cp .env.example .env
 ```
-
-> `backend/.env.example` does not include `DATABASE_URL`. Add it manually — it must point at a running PostgreSQL database.
 
 Generate the Prisma client and apply migrations:
 ```bash
@@ -107,7 +106,7 @@ The user whose email matches `PUBLIC_HABIT_EMAIL` (default: the project owner's 
 ### Backend (`backend/.env`)
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | Yes | PostgreSQL connection string. Not present in `.env.example` — add it manually. |
+| `DATABASE_URL` | Yes | PostgreSQL connection string. |
 | `GOOGLE_CLIENT_ID` | Yes | Google OAuth client ID. |
 | `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth client secret. |
 | `JWT_SECRET` | Yes | Secret used to sign session JWTs. |
@@ -189,7 +188,6 @@ Notes:
 - The backend reads secrets from `backend/.env` via the Compose `env_file` directive.
 - Compose overrides `DATABASE_URL` to point at the internal Docker Postgres service (`db`).
 - Seed data is not required. Run `npm run seed` inside the backend container only if you want sample data.
-- The repository contains two nearly identical Compose files, `compose.yaml` and `docker-compose.yml`. Docker Compose uses `compose.yaml` by default when both are present.
 
 ## Running with Kubernetes
 The `k8s/` directory contains manifests for a local cluster deployment via Minikube.
@@ -261,4 +259,7 @@ Kubernetes app URLs:
   - `FRONTEND_APP_REDIRECT=https://your-domain/app`
 
 ## License
-No `LICENSE` file is present in this repository. `backend/package.json` declares `ISC`; treat the licensing terms as unconfirmed until a `LICENSE` file is added.
+Released under the [MIT License](LICENSE).
+
+## Contact
+Maintained by [Ekam Bhatia](https://github.com/bhat0155). For questions or issues, open a [GitHub issue](https://github.com/bhat0155/xeffect/issues) or reach out at ekamsingh643@gmail.com.
